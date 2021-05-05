@@ -35,11 +35,19 @@ var data = await client.GetOptionsChain(new TDOptionChainRequest
 });
 var data = await client.GetPrincipals(TDPrincipalsFields.preferences, TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys);
 ```
+### Initialization
 
+Setup is multi-step process. To use this SDK, you must run the console app and set up your security file.
+
+1) Update UserSecrets with a entropy key. This ensure the saved security token is secure. [UserSecrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-5.0&tabs=windows)
+3) Run the console app, this will prompt you for a consumer key. This is located under [MyApps](https://developer.tdameritrade.com/user/me/apps)
+4) Sign in using the web browser. Copy the code (?code={code}) from the returned website upon completion.
+5) Input the code into the console app.
+6) This will write a security file (TDAmeritradeKey). Place it in the runtime root when needed.
 
 ### Credits
 
-Copyright (c) 2021 [Nicholas Ventimiglia], (https://www.nicholasventimiglia.com)
+Copyright (c) 2021 [Nicholas Ventimiglia](https://www.nicholasventimiglia.com)
 
 This software is released under the Apache License 2.0 (the "License"); you may not use the software
 except in compliance with the License. You can find a copy of the License in the file
