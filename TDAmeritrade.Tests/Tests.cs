@@ -8,17 +8,14 @@ namespace TDAmeritrade.Tests
         TDAmeritradeClient client;
 
 
-           // Please sign in first, following services uses the client file
-           [SetUp]
+        [SetUp]
         public async Task Init()
         {
-            client = new TDAmeritradeClient(new TDUnprotectedCache());
+            // Please sign in first, following services uses the client file
+            var cache = new TDUnprotectedCache();
+            client = new TDAmeritradeClient(cache);
             await client.PostRefreshToken();
-
-            //var key = Console.ReadLine();
-            //client.RequestAccessToken(key);
-            //var code = Console.ReadLine();
-            //await client.PostAccessToken(key, code);
+            Assert.IsTrue(client.IsSignedIn);
         }
 
         [Test]

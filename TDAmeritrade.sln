@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.Console", "TDAmeritrade.Console\TDAmeritrade.Console.csproj", "{6B4686F9-E24C-422E-8719-14C8C379E275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Console", "TDAmeritrade.Console\TDAmeritrade.Console.csproj", "{6B4686F9-E24C-422E-8719-14C8C379E275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade", "TDAmeritrade\TDAmeritrade.csproj", "{A48977B2-49A5-49E0-B49B-7C17653665E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade", "TDAmeritrade\TDAmeritrade.csproj", "{A48977B2-49A5-49E0-B49B-7C17653665E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.Tests", "TDAmeritrade.Tests\TDAmeritrade.Tests.csproj", "{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Tests", "TDAmeritrade.Tests\TDAmeritrade.Tests.csproj", "{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.Web", "TDAmeritrade.Web\TDAmeritrade.Web.csproj", "{C25F8E19-E248-43BD-AE08-847A2997CFA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

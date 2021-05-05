@@ -43,12 +43,16 @@ namespace TDAmeritrade
         /// https://www.reddit.com/r/algotrading/comments/c81vzq/td_ameritrade_api_access_2019_guide/
         /// https://www.reddit.com/r/algotrading/comments/914q22/successful_access_to_td_ameritrade_api/
         /// </summary>
-        public void RequestAccessToken(string consumerKey, string redirectUrl = "http://localhost")
+        public string RequestAccessToken(string consumerKey, string redirectUrl = "http://localhost", bool navigate = true)
         {
             var encodedKey = HttpUtility.UrlEncode(consumerKey);
             var encodedUri = HttpUtility.UrlEncode(redirectUrl);
             var path = $"https://auth.tdameritrade.com/auth?response_type=code&redirect_uri={encodedUri}&client_id={encodedKey}%40AMER.OAUTHAP";
-            OpenBrowser(path);
+            if (navigate)
+            {
+                OpenBrowser(path);
+            }
+            return path;
         }
 
         /// <summary>
@@ -87,7 +91,7 @@ namespace TDAmeritrade
                         AuthResult.security_code = code;
                         AuthResult.consumer_key = consumerKey;
                         AuthResult.redirect_url = redirectUrl;
-                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(AuthResult));
+                        _cache.Save("TDAmeritradeKey", JsonSerializer.Serialize(AuthResult));
                         IsSignedIn = true;
                         HasConsumerKey = true;
                         break;
@@ -104,7 +108,7 @@ namespace TDAmeritrade
         /// <returns></returns>
         public async Task PostRefreshToken()
         {
-            AuthResult = JsonSerializer.Deserialize<TDAuthResult>(_cache.Load("TDAuthClient"));
+            AuthResult = JsonSerializer.Deserialize<TDAuthResult>(_cache.Load("TDAmeritradeKey"));
 
             var decoded = HttpUtility.UrlDecode(AuthResult.security_code);
 
@@ -133,7 +137,7 @@ namespace TDAmeritrade
                         Console.WriteLine(r);
                         var result = JsonSerializer.Deserialize<TDAuthResult>(r);
                         AuthResult.access_token = result.access_token;
-                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(AuthResult));
+                        _cache.Save("TDAmeritradeKey", JsonSerializer.Serialize(AuthResult));
                         IsSignedIn = true;
                         HasConsumerKey = true;
                         break;

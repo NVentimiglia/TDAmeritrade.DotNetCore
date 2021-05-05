@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+
+<div class="card">
+    <div class="card-body">
+        <form action="@Url.Action("RequestAccessToken", "Home")" class="form-horizontal" method="POST" role="form" autocomplete="on">
+
+            <h2>RequestAccessToken</h2>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">Consumer Key</label>
+                <input class="form-control" id="consumerKey" name="consumerKey" />
+            </div>
+            <input type="submit" class="btn btn-primary btn-block" value="RequestAccessToken" />
+
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="@Url.Action("PostAccessToken", "Home")" class="form-horizontal" method="POST" role="form" autocomplete="on">
+
+            <h2>PostAccessToken</h2>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">Consumer Key</label>
+                <input class="form-control" id="consumerKey" name="consumerKey" />
+                <label class="col-md-2 control-label">Code</label>
+                <input class="form-control" id="code" name="code" />
+            </div>
+            <input type="submit" class="btn btn-primary btn-block" value="PostAccessToken" />
+
+        </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form action="@Url.Action("Quote", "Home")" class="form-horizontal" method="POST" role="form" autocomplete="on">
+
+            <h2>Quote</h2>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">Symbol</label>
+                <input class="form-control" id="symbol" name="symbol" value="SPY" />
+            </div>
+            <input type="submit" class="btn btn-primary btn-block" value="Quote" />
+
+        </form>
+    </div>
+</div>

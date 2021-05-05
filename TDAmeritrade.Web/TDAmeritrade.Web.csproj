@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>4ddc4127-5953-4fe4-8977-993caf1cb519</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TDAmeritrade\TDAmeritrade.csproj" />
+  </ItemGroup>
+
+</Project>

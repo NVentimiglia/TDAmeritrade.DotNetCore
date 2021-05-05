@@ -8,7 +8,6 @@ namespace TDAmeritrade
     /// </summary>
     public class TDUnprotectedCache : ITDPersistentCache
     {
-
         private string _root;
 
         public TDUnprotectedCache(string root = "")
@@ -25,16 +24,21 @@ namespace TDAmeritrade
         }
         public string Load(string key)
         {
-            var path = Path.Combine(_root, key);
-            Ensure(path);
-            return File.ReadAllText(path);
+            lock (this)
+            {
+                var path = Path.Combine(_root, key);
+                Ensure(path);
+                return File.ReadAllText(path);
+            }
         }
-
-        public void Save (string key, string value)
+        public void Save(string key, string value)
         {
-            var path = Path.Combine(_root, key);
-            Ensure(path);
-            File.WriteAllText(key, value);
+            lock (this)
+            {
+                var path = Path.Combine(_root, key);
+                Ensure(path);
+                File.WriteAllText(key, value);
+            }
         }
     }
 }
