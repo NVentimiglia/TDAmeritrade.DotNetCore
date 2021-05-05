@@ -35,15 +35,29 @@ var data = await client.GetOptionsChain(new TDOptionChainRequest
 });
 var data = await client.GetPrincipals(TDPrincipalsFields.preferences, TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys);
 ```
-### Initialization
+### Console/UnitTest Initialization
 
 Setup is multi-step process. To use this SDK, you must run the console app and set up your security file.
 
-1) Update UserSecrets with a entropy key. This ensure the saved security token is secure. [UserSecrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-5.0&tabs=windows)
-3) Run the console app, this will prompt you for a consumer key. This is located under [MyApps](https://developer.tdameritrade.com/user/me/apps)
-4) Sign in using the opened web browser. Copy the code (?code={code}) from the returned website upon completion.
+1) Run the console app, this will prompt you for a consumer key. 
+2) Consumer key is located under [MyApps](https://developer.tdameritrade.com/user/me/apps)
+3) Sign in using the opened web browser. 
+4) Copy the code (?code={code}) from the returned website upon completion.
 5) Input the code into the console app.
 6) This will write a security file (TDAmeritradeKey). Place it in the runtime root when needed.
+7) Copy this key to the test bin/debug folder next to the exe and dll
+
+### AspNetCore Initialization
+
+I have included a AspNetCore example with Dataprotection implemented using a web page. 
+
+1) Run the web application
+2) Start authentication by submitting your consumer key.
+3) Sign in using the opened web browser. 
+4) Copy the code (?code={code}) from the returned website upon completion.
+5) Input the code into the 'PostAccessToken' field
+7) This will write a security file (TDAmeritradeKey).
+8) Enjoy
 
 ### Credits
 
