@@ -1,0 +1,5 @@
+**/obj/**
+**/bin/**
+**/Logs/**
+**/wwwroot/lib/**
+**/.vs/**
