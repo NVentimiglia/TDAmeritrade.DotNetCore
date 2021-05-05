@@ -1,6 +1,6 @@
 ﻿namespace TDAmeritrade
 {
-    public abstract class QuoteBase
+    public abstract class TDQuoteBase
     {
         public string symbol { get; set; }
         public string description { get; set; }
@@ -8,7 +8,7 @@
         public string securityStatus { get; set; }
     }
 
-    public class MarketQuoteBase : QuoteBase
+    public class MarketQuoteBase : TDQuoteBase
     {
         public double bidPrice { get; set; }
         public int bidSize { get; set; }
@@ -30,7 +30,7 @@
     }
 
 
-    public class FundQuote : QuoteBase
+    public class TDFundQuote : TDQuoteBase
     {
         public double closePrice { get; set; }
         public double netChange { get; set; }
@@ -47,7 +47,7 @@
         public string divDate { get; set; }
     }
 
-    public class FutureQuote : QuoteBase
+    public class FutureQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
         public double askPriceInDouble { get; set; }
@@ -77,7 +77,7 @@
         public string futureExpirationDate { get; set; }
     }
 
-    public class FutureOptionsQuote : QuoteBase
+    public class FutureOptionsQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
         public double askPriceInDouble { get; set; }
@@ -117,7 +117,7 @@
     /// <summary>
     ///  SPY,$SPX.X, QQQ,$NDX.X, IWM,$RUT.X, IYY,$DJI2MN Vol indexes $VIX.X,$VXX.X,$VXN.X,$RVX.X
     /// </summary>
-    public class IndexQuote : QuoteBase
+    public class TDIndexQuote : TDQuoteBase
     {
         public double lastPrice { get; set; }
         public double openPrice { get; set; }
@@ -132,7 +132,7 @@
         public double _52WkHigh { get; set; }
         public double _52WkLow { get; set; }
     }
-    public class ForexQuote : QuoteBase
+    public class TDForexQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
         public double askPriceInDouble { get; set; }
@@ -156,7 +156,7 @@
         public int mark { get; set; }
     }
 
-    public class OptionQuote : MarketQuoteBase
+    public class TDOptionQuote : MarketQuoteBase
     {
         public int openInterest { get; set; }
         public double moneyIntrinsicValue { get; set; }
@@ -178,7 +178,7 @@
     }
 
 
-    public class ETFQuote : MarketQuoteBase
+    public class TDETFQuote : MarketQuoteBase
     {
         public string bidId { get; set; }
         public string askId { get; set; }
@@ -198,7 +198,7 @@
         public long regularMarketTradeTimeInLong { get; set; }
     }
 
-    public class EquityQuote : MarketQuoteBase
+    public class TDEquityQuote : MarketQuoteBase
     {
         public string bidId { get; set; }
         public string askId { get; set; }

@@ -8,25 +8,15 @@ using System.Web;
 
 namespace TDAmeritrade
 {
-    /// <summary>
-    /// Get price history for a symbol
-    /// https://developer.tdameritrade.com/price-history/apis/get/marketdata/%7Bsymbol%7D/pricehistory
-    /// </summary>
-    public class TDPriceHistoryClient
+    public partial class TDAmeritradeClient
     {
-        TDAuthClient _auth;
-
-        public TDPriceHistoryClient(TDAuthClient auth)
+        /// <summary>
+        /// Get price history for a symbol
+        /// https://developer.tdameritrade.com/price-history/apis/get/marketdata/%7Bsymbol%7D/pricehistory
+        /// </summary>
+        public async Task<TDPriceCandle[]> GetPriceHistory(TDPriceHistoryRequest model) 
         {
-            _auth = auth;
-        }
-
-       /// <summary>
-       /// Get price history for a symbol
-       /// </summary>
-        public async Task<TDPriceCandle[]> Get(TDPriceHistoryRequest model) 
-        {
-            var json = await GetJson(model);
+            var json = await GetPriceHistoryJson(model);
             if (!string.IsNullOrEmpty(json))
             {
                 var doc = JsonDocument.Parse(json);
@@ -38,21 +28,22 @@ namespace TDAmeritrade
 
         /// <summary>
         /// Get price history for a symbol
+        /// https://developer.tdameritrade.com/price-history/apis/get/marketdata/%7Bsymbol%7D/pricehistory
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<string> GetJson(TDPriceHistoryRequest model)
+        public async Task<string> GetPriceHistoryJson(TDPriceHistoryRequest model)
         {
-            if (!_auth.HasConsumerKey)
+            if (!HasConsumerKey)
             {
                 throw new Exception("Consumer key is required");
             }
 
-            var key = HttpUtility.UrlEncode(_auth.Result.consumer_key);
+            var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
 
             var builder = new UriBuilder($"https://api.tdameritrade.com/v1/marketdata/{model.symbol}/pricehistory");
             var query = HttpUtility.ParseQueryString(builder.Query);
-            if (!_auth.IsSignedIn)
+            if (!IsSignedIn)
             {
                 query["apiKey"] = key;
             }
@@ -75,9 +66,9 @@ namespace TDAmeritrade
 
             using (var client = new HttpClient())
             {
-                if (_auth.IsSignedIn)
+                if (IsSignedIn)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _auth.Result.access_token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthResult.access_token);
                 }
                 var res = await client.GetAsync(url);
 

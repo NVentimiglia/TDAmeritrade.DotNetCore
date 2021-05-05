@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
 using TDAmeritrade;
 
@@ -15,10 +11,9 @@ namespace TDConsole
         {
             Console.WriteLine("Starting Client");
             Console.WriteLine("...");
-            var client = new TDAuthClient(new TDUnprotectedCache());
+            var client = new TDAmeritradeClient(new TDUnprotectedCache());
 
-
-            Console.WriteLine("1 to sign in fresh, 2 to refresh signin, 3 for magic");
+            Console.WriteLine("1 to sign in fresh, 2 to refresh signin");
             var option = Console.ReadKey();
             switch (option.Key)
             {
@@ -35,39 +30,6 @@ namespace TDConsole
                 case ConsoleKey.D2:
                     await client.PostRefreshToken();
                     break;
-                //case ConsoleKey.D3:
-
-                //    var common = new List<PropertyInfo>();
-                //    var counts = new List<string>();
-                //    var types = new List<Type>();
-                //    types.Add(typeof(EquityQuote));
-                //    types.Add(typeof(ETFQuote));
-                //    types.Add(typeof(OptionQuote));
-
-                //    foreach (var t in types)
-                //    {
-                //        var props = t.GetProperties();
-                //        foreach (var p in props)
-                //        {
-                //            counts.Add(p.Name);
-                //        }
-                //    }
-
-                //    var dictionary = new Dictionary<string, string>();
-                //    var distinct = counts.Distinct();
-                //    foreach (var p in distinct)
-                //    {
-                //        var good = counts.Count(o => o == p) == types.Count;
-
-                //        if (good)
-                //        {
-                //            dictionary.Add(p, "");
-                //        }
-                //    }
-
-                //    var json = JsonSerializer.Serialize(dictionary);
-
-                //    break;
                 default:
                     return;
             }

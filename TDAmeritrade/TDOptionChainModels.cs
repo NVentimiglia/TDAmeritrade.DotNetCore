@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace TDAmeritrade
 {
-    public enum OptionChainTypes
+    public enum TDOptionChainTypes
     {
         ALL,
         PUT,
         CALL
     }
 
-    public enum OptionChainStrategy
+    public enum TDOptionChainStrategy
     {
         SINGLE,
         ANALYTICAL,
@@ -26,7 +26,7 @@ namespace TDAmeritrade
         ROLL
     }
 
-    public enum OptionChainOptionTypes
+    public enum TDOptionChainOptionTypes
     {
         /// <summary>
         /// All
@@ -51,7 +51,7 @@ namespace TDAmeritrade
     /// SNK: Strikes Near Market
     /// ALL: All Strikes
     /// </summary>
-    public enum OptionChainRanges
+    public enum TDOptionChainRanges
     {
         /// ALL: All Strikes
         ALL,
@@ -83,11 +83,11 @@ namespace TDAmeritrade
         /// <summary>
         /// Passing a value returns a Strategy Chain
         /// </summary>
-        public OptionChainStrategy strategy { get; set; }
+        public TDOptionChainStrategy strategy { get; set; }
         /// <summary>
         /// Type of contracts to return in the chai
         /// </summary>
-        public OptionChainTypes contractType { get; set; }
+        public TDOptionChainTypes contractType { get; set; }
         /// <summary>
         /// Only return expirations after this date
         /// </summary>
@@ -108,7 +108,7 @@ namespace TDAmeritrade
         /// <summary>
         /// Returns options for the given range
         /// </summary>
-        public OptionChainRanges range { get; set; }
+        public TDOptionChainRanges range { get; set; }
         /// <summary>
         /// Volatility to use in calculations. ANALYTICAL  only.
         /// </summary>
@@ -136,7 +136,7 @@ namespace TDAmeritrade
         /// <summary>
         /// Type of contracts to return
         /// </summary>
-        public OptionChainOptionTypes optionType { get; set; }
+        public TDOptionChainOptionTypes optionType { get; set; }
     }
 
     public class OptionChain

@@ -1,86 +1,65 @@
 using NUnit.Framework;
-using System;
 using System.Threading.Tasks;
 
 namespace TDAmeritrade.Tests
 {
     public class Tests
     {
-        // Please sign in first, following services uses the auth file
-       // [SetUp]
+        TDAmeritradeClient client;
+
+
+           // Please sign in first, following services uses the client file
+           [SetUp]
         public async Task Init()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            var key = Console.ReadLine();
-            auth.RequestAccessToken(key);
-            var code = Console.ReadLine();
-            await auth.PostAccessToken(key, code);
+            client = new TDAmeritradeClient(new TDUnprotectedCache());
+            await client.PostRefreshToken();
+
+            //var key = Console.ReadLine();
+            //client.RequestAccessToken(key);
+            //var code = Console.ReadLine();
+            //await client.PostAccessToken(key, code);
         }
 
         [Test]
         public async Task TestTDQuoteClient_Equity()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDQuoteClient(auth);
-            var data = await client.GetQuote<EquityQuote>("MSFT");
+            var data = await client.GetQuote<TDEquityQuote>("MSFT");
             Assert.IsTrue(data.symbol == "MSFT");
         }
 
-        /// SPY,$SPX.X, QQQ,$NDX.X, IWM,$RUT.X, IYY,$DJI2MN Vol indexes $VIX.X,$VXX.X,$VXN.X,$RVX.X
         [Test]
         public async Task TestTDQuoteClient_Index()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDQuoteClient(auth);
-            var data = await client.GetQuote<IndexQuote>("SPY");
+            var data = await client.GetQuote<TDIndexQuote>("SPY");
             Assert.IsTrue(data.symbol == "SPY");
         }
 
         [Test]
         public async Task TestTDQuoteClient_ETF()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDQuoteClient(auth);
-            var data = await client.GetQuote<ETFQuote>("XLK");
+            var data = await client.GetQuote<TDETFQuote>("XLK");
             Assert.IsTrue(data.symbol == "XLK");
         }
 
         [Test]
         public async Task TestTDQuoteClient_Future()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDQuoteClient(auth);
-            var data = await client.GetQuote<FundQuote>("/ES");
+            var data = await client.GetQuote<TDFundQuote>("/ES");
             Assert.IsTrue(data.symbol == "ES");
         }
 
         [Test]
         public async Task TestTDQuoteClient_Option()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDQuoteClient(auth);
-            var data = await client.GetQuote<OptionQuote>("SPY_231215C500");
+            var data = await client.GetQuote<TDOptionQuote>("SPY_231215C500");
             Assert.IsTrue(data.symbol == "SPY_231215C500");
         }
 
         [Test]
         public async Task TestPriceHistory()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDPriceHistoryClient(auth);
-            var data = await client.Get(new TDPriceHistoryRequest
+            var data = await client.GetPriceHistory(new TDPriceHistoryRequest
             {
                 symbol = "SPY",
                 frequencyType = TDPriceHistoryRequest.FrequencyType.minute,
@@ -95,11 +74,7 @@ namespace TDAmeritrade.Tests
         [Test]
         public async Task TestOptionChain()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDOptionChainClient(auth);
-            var data = await client.Get(new TDOptionChainRequest
+            var data = await client.GetOptionsChain(new TDOptionChainRequest
             {
                 symbol = "SPY",
             });
@@ -108,11 +83,7 @@ namespace TDAmeritrade.Tests
         [Test]
         public async Task TestTDPrincipalClient()
         {
-            TDAuthClient auth = new TDAuthClient(new TDUnprotectedCache());
-            await auth.PostRefreshToken();
-            Assert.IsTrue(auth.IsSignedIn);
-            var client = new TDUserInfoClient(auth);
-            var data = await client.GetPrincipals(TDUserInfoClient.PrincipalsFields.preferences, TDUserInfoClient.PrincipalsFields.streamerConnectionInfo, TDUserInfoClient.PrincipalsFields.streamerSubscriptionKeys);
+            var data = await client.GetPrincipals(TDPrincipalsFields.preferences, TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys);
             Assert.IsTrue(!string.IsNullOrEmpty(data.accessLevel));
         }
     }

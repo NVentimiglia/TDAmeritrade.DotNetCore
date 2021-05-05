@@ -9,26 +9,41 @@ using System.Web;
 
 namespace TDAmeritrade
 {
-    /// <summary>
-    /// Request real-time and delayed top level quote data
-    /// https://developer.tdameritrade.com/quotes/apis
-    /// </summary>
-    public class TDQuoteClient
+    public partial class TDAmeritradeClient
     {
-        TDAuthClient _auth;
-
-        public TDQuoteClient(TDAuthClient auth)
+        /// <summary>
+        /// Helper
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public static bool IsIndexSymbol(string symbol)
         {
-            _auth = auth;
+            switch (symbol)
+            {
+                case "SPY":
+                case "$SPX.X":
+                case "QQQ":
+                case "$NDX.":
+                case "IWM":
+                case "$RUT.X":
+                case "$DJI":
+                case "$VIX.X":
+                case "$VXX.X":
+                case "$VXN.X":
+                case "$RVX.X":
+                    return true;
+                default:
+                    return false;
+            }
         }
 
-        public Task<EquityQuote> GetQuote_Equity(string symbol) => GetQuote<EquityQuote>(symbol);
-        public Task<ETFQuote> GetQuote_ETF(string symbol) => GetQuote<ETFQuote>(symbol);
-        public Task<IndexQuote> GetQuote_Index(string symbol) => GetQuote<IndexQuote>(symbol);
+        public Task<TDEquityQuote> GetQuote_Equity(string symbol) => GetQuote<TDEquityQuote>(symbol);
+        public Task<TDETFQuote> GetQuote_ETF(string symbol) => GetQuote<TDETFQuote>(symbol);
+        public Task<TDIndexQuote> GetQuote_Index(string symbol) => GetQuote<TDIndexQuote>(symbol);
         public Task<FutureQuote> GetQuote_Future(string symbol) => GetQuote<FutureQuote>(symbol);
         public Task<FutureOptionsQuote> GetQuote_FutureOption(string symbol) => GetQuote<FutureOptionsQuote>(symbol);
-        public Task<OptionQuote> GetQuote_Option(string symbol) => GetQuote<OptionQuote>(symbol);
-        public Task<ForexQuote> GetQuote_Forex(string symbol) => GetQuote<ForexQuote>(symbol);
+        public Task<TDOptionQuote> GetQuote_Option(string symbol) => GetQuote<TDOptionQuote>(symbol);
+        public Task<TDForexQuote> GetQuote_Forex(string symbol) => GetQuote<TDForexQuote>(symbol);
 
         /// <summary>
         /// Get quote for a symbol
@@ -37,7 +52,7 @@ namespace TDAmeritrade
         /// <typeparam name="T"></typeparam>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public async Task<T> GetQuote<T>(string symbol) where T : QuoteBase
+        public async Task<T> GetQuote<T>(string symbol) where T : TDQuoteBase
         {
             var json = await GetQuoteJson(symbol);
             if (!string.IsNullOrEmpty(json))
@@ -58,22 +73,22 @@ namespace TDAmeritrade
         /// <returns></returns>
         public async Task<string> GetQuoteJson(string symbol)
         {
-            if (!_auth.HasConsumerKey)
+            if (!HasConsumerKey)
             {
                 throw new Exception("Consumer key is required");
             }
 
-            var key = HttpUtility.UrlEncode(_auth.Result.consumer_key);
+            var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
 
-            string path = _auth.IsSignedIn
+            string path = IsSignedIn
                 ? $"https://api.tdameritrade.com/v1/marketdata/{symbol}/quotes"
                 : $"https://api.tdameritrade.com/v1/marketdata/{symbol}/quotes?apikey={key}";
 
             using (var client = new HttpClient())
             {
-                if (_auth.IsSignedIn)
+                if (IsSignedIn)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _auth.Result.access_token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthResult.access_token);
                 }
                 var res = await client.GetAsync(path);
 

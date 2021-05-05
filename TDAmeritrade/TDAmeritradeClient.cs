@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -11,22 +10,23 @@ using System.Web;
 
 namespace TDAmeritrade
 {
-
-    /// <summary>
-    /// The token endpoint returns an access token along with an optional refresh token.
-    /// </summary>
-    public class TDAuthClient
+    public partial class TDAmeritradeClient
     {
-        public AuthResult Result = new AuthResult();
+        protected TDAuthResult AuthResult = new TDAuthResult();
 
         public bool IsSignedIn { get; private set; }
         public bool HasConsumerKey { get; private set; }
 
         private ITDPersistentCache _cache;
 
-        public TDAuthClient(ITDPersistentCache cache)
+        public TDAmeritradeClient(ITDPersistentCache cache)
         {
             _cache = cache;
+        }
+
+        public TDAmeritradeClient()
+        {
+            _cache = new TDUnprotectedCache();
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace TDAmeritrade
         /// <param name="consumerKey"></param>
         public void SetConsumerKey(string consumerKey)
         {
-            Result.consumer_key = consumerKey;
+            AuthResult.consumer_key = consumerKey;
             HasConsumerKey = true;
         }
 
@@ -83,11 +83,11 @@ namespace TDAmeritrade
                     case HttpStatusCode.OK:
                         var r = await res.Content.ReadAsStringAsync();
                         Console.WriteLine(r);
-                        Result = JsonSerializer.Deserialize<AuthResult>(r);
-                        Result.security_code = code;
-                        Result.consumer_key = consumerKey;
-                        Result.redirect_url = redirectUrl;
-                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(Result));
+                        AuthResult = JsonSerializer.Deserialize<TDAuthResult>(r);
+                        AuthResult.security_code = code;
+                        AuthResult.consumer_key = consumerKey;
+                        AuthResult.redirect_url = redirectUrl;
+                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(AuthResult));
                         IsSignedIn = true;
                         HasConsumerKey = true;
                         break;
@@ -104,9 +104,9 @@ namespace TDAmeritrade
         /// <returns></returns>
         public async Task PostRefreshToken()
         {
-            Result = JsonSerializer.Deserialize<AuthResult>(_cache.Load("TDAuthClient"));
+            AuthResult = JsonSerializer.Deserialize<TDAuthResult>(_cache.Load("TDAuthClient"));
 
-            var decoded = HttpUtility.UrlDecode(Result.security_code);
+            var decoded = HttpUtility.UrlDecode(AuthResult.security_code);
 
             var path = "https://api.tdameritrade.com/v1/oauth2/token";
 
@@ -114,9 +114,9 @@ namespace TDAmeritrade
                 {
                     { "grant_type", "refresh_token" },
                     { "access_type", "" },
-                    { "client_id", $"{Result.consumer_key}@AMER.OAUTHAP" },
-                    { "redirect_uri", Result.refresh_token },
-                    { "refresh_token", Result.refresh_token },
+                    { "client_id", $"{AuthResult.consumer_key}@AMER.OAUTHAP" },
+                    { "redirect_uri", AuthResult.refresh_token },
+                    { "refresh_token", AuthResult.refresh_token },
                     { "code", decoded }
                 };
 
@@ -131,9 +131,9 @@ namespace TDAmeritrade
                     case HttpStatusCode.OK:
                         var r = await res.Content.ReadAsStringAsync();
                         Console.WriteLine(r);
-                        var result = JsonSerializer.Deserialize<AuthResult>(r);
-                        Result.access_token = result.access_token;
-                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(Result));
+                        var result = JsonSerializer.Deserialize<TDAuthResult>(r);
+                        AuthResult.access_token = result.access_token;
+                        _cache.Save("TDAuthClient", JsonSerializer.Serialize(AuthResult));
                         IsSignedIn = true;
                         HasConsumerKey = true;
                         break;

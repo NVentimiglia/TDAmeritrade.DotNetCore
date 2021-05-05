@@ -8,26 +8,15 @@ using System.Threading.Tasks;
 
 namespace TDAmeritrade
 {
-
-    /// <summary>
-    /// Get Option Chains for optionable symbols
-    /// https://developer.tdameritrade.com/option-chains/apis/get/marketdata/chains
-    /// </summary>
-    public class TDOptionChainClient
+    public partial class TDAmeritradeClient
     {
-        TDAuthClient _auth;
-
-        public TDOptionChainClient(TDAuthClient auth)
-        {
-            _auth = auth;
-        }
-
         /// <summary>
         /// Get option chain for an optionable Symbol
+        /// https://developer.tdameritrade.com/option-chains/apis/get/marketdata/chains
         /// </summary>
-        public async Task<OptionChain> Get(TDOptionChainRequest request) 
+        public async Task<OptionChain> GetOptionsChain(TDOptionChainRequest request) 
         {
-            var json = await GetJson(request);
+            var json = await GetOptionsChainJson(request);
             if (!string.IsNullOrEmpty(json))
             {
                 return JsonSerializer.Deserialize<OptionChain>(json);
@@ -37,18 +26,19 @@ namespace TDAmeritrade
 
         /// <summary>
         /// Get option chain for an optionable Symbol
+        /// https://developer.tdameritrade.com/option-chains/apis/get/marketdata/chains
         /// </summary>
-        public async Task<string> GetJson(TDOptionChainRequest request)
+        public async Task<string> GetOptionsChainJson(TDOptionChainRequest request)
         {
-            if (!_auth.HasConsumerKey)
+            if (!HasConsumerKey)
             {
                 throw new Exception("Consumer key is required");
             }
 
             NameValueCollection queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
-            if (!_auth.IsSignedIn)
+            if (!IsSignedIn)
             {
-                queryString.Add("apikey", _auth.Result.consumer_key);
+                queryString.Add("apikey", AuthResult.consumer_key);
             }
             queryString.Add("symbol", request.symbol);
             queryString.Add("contractType", request.contractType.ToString());
@@ -65,7 +55,7 @@ namespace TDAmeritrade
             queryString.Add("expMonth", request.expMonth);
             queryString.Add("optionType", request.optionType.ToString());
 
-            if (request.strategy == OptionChainStrategy.ANALYTICAL)
+            if (request.strategy == TDOptionChainStrategy.ANALYTICAL)
             {
                 queryString.Add("volatility", request.volatility.ToString());
                 queryString.Add("underlyingPrice", request.underlyingPrice.ToString());
@@ -79,7 +69,7 @@ namespace TDAmeritrade
 
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _auth.Result.access_token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthResult.access_token);
                 var res = await client.GetAsync(path);
 
                 switch (res.StatusCode)

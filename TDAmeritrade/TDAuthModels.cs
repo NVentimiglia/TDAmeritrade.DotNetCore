@@ -1,6 +1,6 @@
 ﻿namespace TDAmeritrade
 {
-    public class AuthResult
+    public class TDAuthResult
     {
         public string redirect_url { get; set; }
         public string consumer_key { get; set; }
