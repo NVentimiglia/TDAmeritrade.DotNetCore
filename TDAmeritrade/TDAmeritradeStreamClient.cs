@@ -55,14 +55,13 @@ namespace TDAmeritrade
 
                 if (_socket.State == WebSocketState.Open)
                 {
-                      await Login();
-                     Receive();
+                    await Login();
+                    Receive();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR - {ex.Message}");
-
                 Cleanup();
             }
         }
@@ -80,7 +79,7 @@ namespace TDAmeritrade
                     {
                         do
                         {
-                            result = await _socket.ReceiveAsync(buffer,  CancellationToken.None);
+                            result = await _socket.ReceiveAsync(buffer, CancellationToken.None);
                             ms.Write(buffer.Array, buffer.Offset, result.Count);
                         } while (!result.EndOfMessage);
 
@@ -152,7 +151,7 @@ namespace TDAmeritrade
                 if (_socket.State == WebSocketState.Open)
                 {
                     await LogOut();
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure",  CancellationToken.None);
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
                 }
                 _socket.Dispose();
                 _socket = null;
@@ -235,7 +234,7 @@ namespace TDAmeritrade
             return SendString(data);
         }
 
-        public Task SubscribeChart(string symbol, TDChartSubs service)
+        public Task SubscribeChart(string symbols, TDChartSubs service)
         {
             var request = new TDRealtimeRequestContainer
             {
@@ -250,7 +249,7 @@ namespace TDAmeritrade
                         source = _prince.streamerInfo.appId,
                         parameters = new TDRealtimeParams
                         {
-                            keys = symbol,
+                            keys = symbols,
                             fields = "0,1,2,3,4,5,6,7,8"
                         }
                     }
@@ -261,13 +260,56 @@ namespace TDAmeritrade
         }
 
 
-        public async Task SubscribeLevel1(string symbol)
+        public Task SubscribeQuote(string symbol)
         {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                   {
+                    new TDRealtimeRequest
+                    {
+                        service = "QUOTE",
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new TDRealtimeParams
+                        {
+                            keys = symbol,
+                            fields = "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
+                        }
+                    }
+                   }
+            };
+
+            var data = JsonSerializer.Serialize(request);
+            return SendString(data);
         }
 
-        public async Task SubscribeTimeSale()
+        public Task SubscribeTimeSale(string symbols, TDTimeSaleServices service)
         {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = service.ToString(),
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new TDRealtimeParams
+                        {
+                            keys = symbols,
+                            fields = "0,1,2,3,4"
+                        }
+                    }
+                }
+            };
 
+            var data = JsonSerializer.Serialize(request);
+            return SendString(data);
         }
     }
 }

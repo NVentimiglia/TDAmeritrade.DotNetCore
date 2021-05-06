@@ -10,6 +10,14 @@ namespace TDAmeritrade
         CHART_FUTURES,
     }
 
+    public enum TDTimeSaleServices
+    {
+        TIMESALE_EQUITY,
+        TIMESALE_FOREX,
+        TIMESALE_FUTURES,
+        TIMESALE_OPTIONS,
+    }
+
     public class TDRealtimeParams
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

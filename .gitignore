@@ -4,3 +4,4 @@
 **/wwwroot/lib/**
 **/.vs/**
 TDAmeritrade.Web/TDAmeritradeKey
+TDAmeritrade.Console/Records/
