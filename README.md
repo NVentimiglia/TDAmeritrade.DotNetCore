@@ -70,8 +70,4 @@ I have included a AspNetCore example with Dataprotection implemented using a web
 
 Copyright (c) 2021 [Nicholas Ventimiglia](https://www.nicholasventimiglia.com)
 
-This software is released under the Apache License 2.0 (the "License"); you may not use the software
-except in compliance with the License. You can find a copy of the License in the file
-[LICENSE.txt](https://raw.github.com/kriasoft/tdameritrade/master/LICENSE.txt) accompanying this file. 
-
 Logo image is a trademark of TD Ameritrade, Inc.
