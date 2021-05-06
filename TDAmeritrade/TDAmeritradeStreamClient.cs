@@ -18,17 +18,15 @@ namespace TDAmeritrade
     {
         TDAmeritradeClient _client;
         ClientWebSocket _socket;
-        CancellationTokenSource _cancel;
         TDPrincipal _prince;
         TDAccount _account;
-        private bool _firstMessage = false;
+        int _counter;
 
         public event Action<string> OnMessage;
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
             _client = client;
-            _cancel = new CancellationTokenSource();
         }
 
         public async Task Connect()
@@ -46,46 +44,26 @@ namespace TDAmeritrade
             _prince = await _client.GetPrincipals(TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys, TDPrincipalsFields.preferences);
             _account = _prince.accounts.Find(o => o.accountId == _prince.primaryAccountId);
 
-            if (_socket != null)
-            {
-                _socket.Dispose();
-                _socket = null;
-            }
-
             try
             {
                 Console.WriteLine($"TDAmeritradeStreamClient Connect");
 
-                _firstMessage = false;
                 var path = new Uri("wss://" + _prince.streamerInfo.streamerSocketUrl + "/ws");
                 _socket = new ClientWebSocket();
 
-                await _socket.ConnectAsync(path, _cancel.Token);
+                await _socket.ConnectAsync(path, CancellationToken.None);
 
                 if (_socket.State == WebSocketState.Open)
                 {
-                    await Login();
-
-                    Receive();
-
-                }
-
-                await TaskEx.WaitUntil(() => _firstMessage, timeout: 15);
-
-                if (!_firstMessage)
-                {
-                    throw new Exception("Timeout");
+                      await Login();
+                     Receive();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR - {ex.Message}");
 
-                if (_socket != null)
-                {
-                    _socket.Dispose();
-                    _socket = null;
-                }
+                Cleanup();
             }
         }
 
@@ -102,7 +80,7 @@ namespace TDAmeritrade
                     {
                         do
                         {
-                            result = await _socket.ReceiveAsync(buffer, _cancel.Token);
+                            result = await _socket.ReceiveAsync(buffer,  CancellationToken.None);
                             ms.Write(buffer.Array, buffer.Offset, result.Count);
                         } while (!result.EndOfMessage);
 
@@ -124,7 +102,7 @@ namespace TDAmeritrade
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"ERROR - {ex.Message}");
-                                Disconnect();
+                                Cleanup();
                             }
                         }
                     }
@@ -133,32 +111,49 @@ namespace TDAmeritrade
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR - {ex.Message}");
-                Dispose();
+                Cleanup();
             }
         }
 
         void HandleMessage(string msg)
         {
-            _firstMessage = true;
             OnMessage(msg);
         }
-        public async Task SendString(string data, CancellationToken cancellation)
+
+        private async void Cleanup()
+        {
+            if (_socket != null)
+            {
+                if (_socket.State == WebSocketState.Open)
+                {
+                    await LogOut();
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
+                }
+                _socket.Dispose();
+                _socket = null;
+            }
+        }
+
+        public async Task SendString(string data)
         {
             if (_socket != null)
             {
                 var encoded = Encoding.UTF8.GetBytes(data);
-                var buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-                await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, cancellation);
+                var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+                await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
 
-        public async void Disconnect()
+        public async Task Disconnect()
         {
-            Console.WriteLine($"TDAmeritradeStreamClient Disconnect");
-            _cancel.Cancel();
             if (_socket != null)
             {
-                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", _cancel.Token);
+                Console.WriteLine($"TDAmeritradeStreamClient Disconnect");
+                if (_socket.State == WebSocketState.Open)
+                {
+                    await LogOut();
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure",  CancellationToken.None);
+                }
                 _socket.Dispose();
                 _socket = null;
             }
@@ -166,16 +161,12 @@ namespace TDAmeritrade
 
         public void Dispose()
         {
-            _cancel.Cancel();
-            if (_socket != null)
-            {
-                _socket.Dispose();
-                _socket = null;
-            }
+            Cleanup();
         }
 
         Task Login()
         {
+            Console.WriteLine($"TDAmeritradeStreamClient Login");
             //Converts ISO-8601 response in snapshot to ms since epoch accepted by Streamer
             var tokenTimeStampAsDateObj = DateTime.Parse(_prince.streamerInfo.tokenTimestamp);
             var tokenTimeStampAsMs = tokenTimeStampAsDateObj.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
@@ -207,7 +198,7 @@ namespace TDAmeritrade
                     {
                         service = "ADMIN",
                         command = "LOGIN",
-                        requestid = 0,
+                        requestid = Interlocked.Increment(ref _counter),
                         account = _account.accountId,
                         source = _prince.streamerInfo.appId,
                         parameters = new TDRealtimeParams
@@ -220,10 +211,31 @@ namespace TDAmeritrade
                 }
             };
             var data = JsonSerializer.Serialize(request);
-            return SendString(data, _cancel.Token);
+            return SendString(data);
+        }
+        Task LogOut()
+        {
+            Console.WriteLine($"TDAmeritradeStreamClient LogOut");
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = "ADMIN",
+                        command = "LOGOUT",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new TDRealtimeParams { }
+                    }
+                }
+            };
+            var data = JsonSerializer.Serialize(request);
+            return SendString(data);
         }
 
-        public Task Subscribe_Chart(string symbol)
+        public Task SubscribeChart(string symbol, TDChartSubs service)
         {
             var request = new TDRealtimeRequestContainer
             {
@@ -231,9 +243,9 @@ namespace TDAmeritrade
                 {
                     new TDRealtimeRequest
                     {
-                        service = "CHART_EQUITY",
+                        service = service.ToString(),
                         command = "SUBS",
-                        requestid = 2,
+                        requestid = Interlocked.Increment(ref _counter),
                         account = _account.accountId,
                         source = _prince.streamerInfo.appId,
                         parameters = new TDRealtimeParams
@@ -245,7 +257,17 @@ namespace TDAmeritrade
                 }
             };
             var data = JsonSerializer.Serialize(request);
-            return SendString(data, _cancel.Token);
+            return SendString(data);
+        }
+
+
+        public async Task SubscribeLevel1(string symbol)
+        {
+        }
+
+        public async Task SubscribeTimeSale()
+        {
+
         }
     }
 }

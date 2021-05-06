@@ -3,10 +3,20 @@ using System.Text.Json.Serialization;
 
 namespace TDAmeritrade
 {
+    public enum TDChartSubs
+    {
+        CHART_EQUITY,
+        CHART_OPTIONS,
+        CHART_FUTURES,
+    }
+
     public class TDRealtimeParams
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string credential { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string token { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string version { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

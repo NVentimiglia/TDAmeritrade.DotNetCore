@@ -46,14 +46,19 @@ namespace TDConsole
                 case ConsoleKey.D3:
                     await client.PostRefreshToken();
                     Console.WriteLine($"Authenticated {client.IsSignedIn}.");
-                    var socket = new TDAmeritradeStreamClient(client);
-                    socket.OnMessage += (m) =>
+                    using (var socket = new TDAmeritradeStreamClient(client))
                     {
-                        Console.WriteLine(m);
-                    };
-                    await socket.Connect();
-                    await socket.Subscribe_Chart("MSFT");
-                    Console.ReadLine();
+                        socket.OnMessage += (m) =>
+                        {
+                            Console.WriteLine(m);
+                        };
+                        await socket.Connect();
+                        await socket.SubscribeChart("/ES", TDChartSubs.CHART_FUTURES);
+                        //  await socket.Subscribe("SPY", TDChartSubs.CHART_EQUITY);
+                        //   await socket.Subscribe("MSFT", TDChartSubs.CHART_EQUITY);
+                        Console.ReadLine();
+                        await socket.Disconnect();
+                    }
                     break;
                 default:
                     return;

@@ -16,7 +16,6 @@ namespace TDAmeritrade
 
         public bool IsSignedIn { get; private set; }
         public bool HasConsumerKey { get; private set; }
-
         public string AccessToken
         {
             get
