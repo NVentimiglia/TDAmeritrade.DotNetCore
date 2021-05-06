@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 
 namespace TDAmeritrade
-{
-    public partial class TDAmeritradeClient
+{    public partial class TDAmeritradeClient
     {        /// <summary>
         /// User Principal details.        
         /// </summary>

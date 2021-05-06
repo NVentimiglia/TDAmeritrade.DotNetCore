@@ -22,7 +22,7 @@ namespace TDConsole
             var cache = new TDUnprotectedCache();
             var client = new TDAmeritradeClient(cache);
 
-            Console.WriteLine("1 to sign in fresh, 2 to refresh signin");
+            Console.WriteLine("1 to sign in fresh, 2 to refresh signin, 3 streaming");
             var option = Console.ReadKey();
             switch (option.Key)
             {
@@ -41,6 +41,18 @@ namespace TDConsole
                 case ConsoleKey.D2:
                     await client.PostRefreshToken();
                     Console.WriteLine($"Authenticated {client.IsSignedIn}.");
+                    Console.ReadLine();
+                    break;
+                case ConsoleKey.D3:
+                    await client.PostRefreshToken();
+                    Console.WriteLine($"Authenticated {client.IsSignedIn}.");
+                    var socket = new TDAmeritradeStreamClient(client);
+                    socket.OnMessage += (m) =>
+                    {
+                        Console.WriteLine(m);
+                    };
+                    await socket.Connect();
+                    await socket.Subscribe_Chart("MSFT");
                     Console.ReadLine();
                     break;
                 default:

@@ -1,5 +1,6 @@
 ﻿namespace TDAmeritrade
 {
+
     /// <summary>
     /// Abstraction for saving persistent data
     /// </summary>

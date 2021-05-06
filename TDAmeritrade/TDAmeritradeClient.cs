@@ -17,8 +17,15 @@ namespace TDAmeritrade
         public bool IsSignedIn { get; private set; }
         public bool HasConsumerKey { get; private set; }
 
-        private ITDPersistentCache _cache;
+        public string AccessToken
+        {
+            get
+            {
+                return AuthResult.access_token;
+            }
+        }
 
+        private ITDPersistentCache _cache;
         public TDAmeritradeClient(ITDPersistentCache cache)
         {
             _cache = cache;
