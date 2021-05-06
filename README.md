@@ -55,6 +55,10 @@ I have included a AspNetCore example with Dataprotection implemented using a web
 7) This will write a security file (TDAmeritradeKey).
 8) Enjoy
 
+### Contribution
+
+Core functionality is complete, but work remains in filling in additonal endpoints. Specifically around the realtime / stream capabilities. Contributions welcome.
+
 ### Credits
 
 Copyright (c) 2021 [Nicholas Ventimiglia](https://www.nicholasventimiglia.com)
