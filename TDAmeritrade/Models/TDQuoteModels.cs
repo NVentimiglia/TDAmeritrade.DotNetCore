@@ -21,7 +21,7 @@
         public double lowPrice { get; set; }
         public double closePrice { get; set; }
         public double netChange { get; set; }
-        public int totalVolume { get; set; }
+        public long totalVolume { get; set; }
         public long quoteTimeInLong { get; set; }
         public long tradeTimeInLong { get; set; }
         public double mark { get; set; }
@@ -29,6 +29,25 @@
         public double volatility { get; set; }
     }
 
+    public class TDEquityQuote : MarketQuoteBase
+    {
+        public string bidId { get; set; }
+        public string askId { get; set; }
+        public string lastId { get; set; }
+        public bool marginable { get; set; }
+        public bool shortable { get; set; }
+        public int digits { get; set; }
+        public double _52WkHigh { get; set; }
+        public double _52WkLow { get; set; }
+        public double peRatio { get; set; }
+        public double divAmount { get; set; }
+        public double divYield { get; set; }
+        public string divDate { get; set; }
+        public double regularMarketLastPrice { get; set; }
+        public int regularMarketLastSize { get; set; }
+        public double regularMarketNetChange { get; set; }
+        public long regularMarketTradeTimeInLong { get; set; }
+    }
 
     public class TDFundQuote : TDQuoteBase
     {
@@ -125,7 +144,7 @@
         public double lowPrice { get; set; }
         public double closePrice { get; set; }
         public double netChange { get; set; }
-        public int totalVolume { get; set; }
+        public long totalVolume { get; set; }
         public long tradeTimeInLong { get; set; }
         public string exchange { get; set; }
         public int digits { get; set; }
@@ -175,47 +194,6 @@
         public double underlyingPrice { get; set; }
         public string uvExpirationType { get; set; }
         public string settlementType { get; set; }
-    }
-
-
-    public class TDETFQuote : MarketQuoteBase
-    {
-        public string bidId { get; set; }
-        public string askId { get; set; }
-        public string lastId { get; set; }
-        public bool marginable { get; set; }
-        public bool shortable { get; set; }
-        public int digits { get; set; }
-        public double _52WkHigh { get; set; }
-        public double _52WkLow { get; set; }
-        public double peRatio { get; set; }
-        public double divAmount { get; set; }
-        public double divYield { get; set; }
-        public string divDate { get; set; }
-        public double regularMarketLastPrice { get; set; }
-        public int regularMarketLastSize { get; set; }
-        public double regularMarketNetChange { get; set; }
-        public long regularMarketTradeTimeInLong { get; set; }
-    }
-
-    public class TDEquityQuote : MarketQuoteBase
-    {
-        public string bidId { get; set; }
-        public string askId { get; set; }
-        public string lastId { get; set; }
-        public bool marginable { get; set; }
-        public bool shortable { get; set; }
-        public int digits { get; set; }
-        public double _52WkHigh { get; set; }
-        public double _52WkLow { get; set; }
-        public double peRatio { get; set; }
-        public double divAmount { get; set; }
-        public double divYield { get; set; }
-        public string divDate { get; set; }
-        public double regularMarketLastPrice { get; set; }
-        public int regularMarketLastSize { get; set; }
-        public double regularMarketNetChange { get; set; }
-        public long regularMarketTradeTimeInLong { get; set; }
     }
 
 }

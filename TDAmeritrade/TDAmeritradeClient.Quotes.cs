@@ -16,37 +16,7 @@ namespace TDAmeritrade
         /// </summary>
         public static bool IsFutureSymbol(string symbol)
         {
-            switch (symbol)
-            {
-                case "/ES":
-                case "/MES":
-                case "/NQ":
-                case "/YM":
-                case "/RTY":
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
-        /// Helper
-        /// </summary>
-        public static bool IsETFSymbol(string symbol)
-        {
-            switch (symbol)
-            {
-                case "SPY":
-                case "QQQ":
-                case "IWM":
-                case "DIA":
-                case "USO":
-                case "GLD":
-                case "TLT":
-                    return true;
-                default:
-                    return false;
-            }
+            return symbol.StartsWith("/");
         }
 
         /// <summary>
@@ -54,25 +24,10 @@ namespace TDAmeritrade
         /// </summary>
         public static bool IsIndexSymbol(string symbol)
         {
-            switch (symbol)
-            {
-                case "$SPX.X":
-                case "$NDX.":
-                case "$RUT.X":
-                case "$DJI":
-                case ".DXY":
-                case "$VIX.X":
-                case "$VXX.X":
-                case "$VXN.X":
-                case "$RVX.X":
-                    return true;
-                default:
-                    return false;
-            }
+            return symbol.StartsWith("$");
         }
 
         public Task<TDEquityQuote> GetQuote_Equity(string symbol) => GetQuote<TDEquityQuote>(symbol);
-        public Task<TDETFQuote> GetQuote_ETF(string symbol) => GetQuote<TDETFQuote>(symbol);
         public Task<TDIndexQuote> GetQuote_Index(string symbol) => GetQuote<TDIndexQuote>(symbol);
         public Task<FutureQuote> GetQuote_Future(string symbol) => GetQuote<FutureQuote>(symbol);
         public Task<FutureOptionsQuote> GetQuote_FutureOption(string symbol) => GetQuote<FutureOptionsQuote>(symbol);

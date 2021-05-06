@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade", "TDAmeritrad
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Tests", "TDAmeritrade.Tests\TDAmeritrade.Tests.csproj", "{4615427C-1A6B-4A32-A309-1EC5F3AFA1AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.Web", "TDAmeritrade.Web\TDAmeritrade.Web.csproj", "{C25F8E19-E248-43BD-AE08-847A2997CFA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Web", "TDAmeritrade.Web\TDAmeritrade.Web.csproj", "{C25F8E19-E248-43BD-AE08-847A2997CFA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.DataProtection", "TDAmeritrade.DataProtection\TDAmeritrade.DataProtection.csproj", "{0B3196C6-DD40-42AF-AED8-BA22B6B65368}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C25F8E19-E248-43BD-AE08-847A2997CFA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

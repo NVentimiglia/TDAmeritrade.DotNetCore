@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Specialized;
+using System.Dynamic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -21,8 +23,27 @@ namespace TDAmeritrade
         TDPrincipal _prince;
         TDAccount _account;
         int _counter;
+        
+        /// <summary>
+        /// Is stream connected
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                return _socket != null && _socket.State == WebSocketState.Open;
+            }
+        }
+        
+        /// <summary>
+        /// Raw json messages
+        /// </summary>
+        public event Action<string> OnMessage = delegate { };
 
-        public event Action<string> OnMessage;
+        /// <summary>
+        /// On Heartbeat
+        /// </summary>
+        public event Action<long> OnHeartbeat = delegate { };
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
@@ -119,7 +140,7 @@ namespace TDAmeritrade
             OnMessage(msg);
         }
 
-        private async void Cleanup()
+        async void Cleanup()
         {
             if (_socket != null)
             {
@@ -258,7 +279,6 @@ namespace TDAmeritrade
             var data = JsonSerializer.Serialize(request);
             return SendString(data);
         }
-
 
         public Task SubscribeQuote(string symbol)
         {

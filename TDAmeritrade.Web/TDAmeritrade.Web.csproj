@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TDAmeritrade.DataProtection\TDAmeritrade.DataProtection.csproj" />
     <ProjectReference Include="..\TDAmeritrade\TDAmeritrade.csproj" />
   </ItemGroup>
 

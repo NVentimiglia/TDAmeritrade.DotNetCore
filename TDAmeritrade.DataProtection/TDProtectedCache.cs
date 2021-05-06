@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 
-namespace TDAmeritrade.Web
+namespace TDAmeritrade
 {
     /// <summary>
     /// Saves security token as an PROTECTED FILE

@@ -28,15 +28,8 @@ namespace TDAmeritrade.Tests
         [Test]
         public async Task TestTDQuoteClient_Index()
         {
-            var data = await client.GetQuote<TDIndexQuote>("SPY");
-            Assert.IsTrue(data.symbol == "SPY");
-        }
-
-        [Test]
-        public async Task TestTDQuoteClient_ETF()
-        {
-            var data = await client.GetQuote<TDETFQuote>("XLK");
-            Assert.IsTrue(data.symbol == "XLK");
+            var data = await client.GetQuote<TDIndexQuote>("$SPX");
+            Assert.IsTrue(data.symbol == "$SPX");
         }
 
         [Test]
@@ -82,6 +75,23 @@ namespace TDAmeritrade.Tests
         {
             var data = await client.GetPrincipals(TDPrincipalsFields.preferences, TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys);
             Assert.IsTrue(!string.IsNullOrEmpty(data.accessLevel));
+        }
+
+        [Test]
+        public async Task TestRealtimeStream()
+        {
+            await client.PostRefreshToken();
+            using (var socket = new TDAmeritradeStreamClient(client))
+            {
+                await socket.Connect();
+                var symbol = "SPY";
+                await socket.SubscribeQuote(symbol);
+                await socket.SubscribeChart(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
+                await socket.SubscribeTimeSale(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
+                await Task.Delay(1000);
+                Assert.IsTrue(socket.IsConnected);
+                await socket.Disconnect();
+            }
         }
     }
 }
