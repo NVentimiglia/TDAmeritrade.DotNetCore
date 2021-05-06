@@ -6,7 +6,7 @@ Helps developers integrate TD Ameritrade API into custom trading solutions.
 ### Features
 
 - Authentication Flow
-- Get Princpal
+- Principal
 - Quotes
 - Historical Charts
 - Option Chain
