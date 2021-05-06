@@ -3,6 +3,17 @@
 Free, open-source .NET Client for the [TD Ameritrade Trading Platform](https://www.tdameritrade.com/api.page).
 Helps developers integrate TD Ameritrade API into custom trading solutions.
 
+### Features
+
+- Authentication Flow
+- Get Princpal
+- Quotes
+- Historical Charts
+- Option Chain
+- Streaming Charts
+- Streaming Level 1 Quotes
+- Streaming Time & Sales
+
 ### Sample
 
 ```csharp
@@ -54,10 +65,6 @@ I have included a AspNetCore example with Dataprotection implemented using a web
 5) Input the code into the 'PostAccessToken' field
 7) This will write a security file (TDAmeritradeKey).
 8) Enjoy
-
-### Contribution
-
-Core functionality is complete, but work remains in filling in additonal endpoints. Specifically around the realtime / stream capabilities. Contributions welcome.
 
 ### Credits
 
