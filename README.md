@@ -40,8 +40,7 @@ var data = await client.GetOptionsChain(new TDOptionChainRequest
 {
     symbol = "SPY",
 });
-var data = await client.GetPrincipals(TDPrincipalsFields.preferences, TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys);
-
+var data = await client.GetPrincipals(TDPrincipalsFields.preferences);
 using (var socket = new TDAmeritradeStreamClient(client))
 {
     socket.OnHeartbeat += o => { };
@@ -51,7 +50,7 @@ using (var socket = new TDAmeritradeStreamClient(client))
     await socket.Connect();
     await socket.SubscribeQuote("SPY");
     await socket.SubscribeChart("SPY", TDChartSubs.CHART_EQUITY);
-    await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_EQUITY);
+    await socket.SubscribeTimeSale("SPY", TDTimeSaleServices.TIMESALE_EQUITY);
 }
 ```
 ### Console/UnitTest Initialization
