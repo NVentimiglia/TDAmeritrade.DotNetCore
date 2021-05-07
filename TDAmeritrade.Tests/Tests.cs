@@ -83,8 +83,12 @@ namespace TDAmeritrade.Tests
             await client.PostRefreshToken();
             using (var socket = new TDAmeritradeStreamClient(client))
             {
-                await socket.Connect();
                 var symbol = "SPY";
+                socket.OnHeartbeat += o => { };
+                socket.OnQuote += o => { };
+                socket.OnTimeSale += o => { };
+                socket.OnChart += o => { };
+                await socket.Connect();
                 await socket.SubscribeQuote(symbol);
                 await socket.SubscribeChart(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
                 await socket.SubscribeTimeSale(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
@@ -108,7 +112,7 @@ namespace TDAmeritrade.Tests
             {
                 counter--;
             };
-            reader.OnTimeSaleEquity += (sale) =>
+            reader.OnTimeSale += (sale) =>
             {
                 counter--;
             };

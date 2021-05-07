@@ -49,16 +49,20 @@ namespace TDAmeritrade
         /// <summary>
         /// Server Sent Event
         /// </summary>
-        public event Action<TDTimeSaleEquitySignal> OnTimeSaleEquity = delegate { };
+        public event Action<TDTimeSaleSignal> OnTimeSale = delegate { };
+        /// <summary>
+        /// Server Sent Event
+        /// </summary>
+        public event Action<TDChartSignal> OnChart = delegate { };
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
             _client = client;
             _parser = new TDAmeritradeJsonParser();
-
-            _parser.OnHeartbeat += OnHeartbeat;
-            _parser.OnQuote += OnQuote;
-            _parser.OnTimeSaleEquity += OnTimeSaleEquity;
+            _parser.OnHeartbeat += o => { OnHeartbeat(o); };
+            _parser.OnQuote += o => { OnQuote(o); };
+            _parser.OnTimeSale += o => { OnTimeSale(o); };
+            _parser.OnChart += o => { OnChart(o); };
         }
 
         public async Task Connect()
@@ -274,12 +278,18 @@ namespace TDAmeritrade
             return SendString(data);
         }
 
+        /// <summary>
+        /// Subscribed to the chart event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="isFutureSymbol">true if symbols are for futures</param>
+        /// <returns></returns>
         public Task SubscribeChart(string symbols, TDChartSubs service)
         {
             var request = new TDRealtimeRequestContainer
             {
                 requests = new TDRealtimeRequest[]
-                {
+                    {
                     new TDRealtimeRequest
                     {
                         service = service.ToString(),
@@ -293,18 +303,23 @@ namespace TDAmeritrade
                             fields = "0,1,2,3,4,5,6,7,8"
                         }
                     }
-                }
+                    }
             };
             var data = JsonSerializer.Serialize(request);
             return SendString(data);
         }
 
-        public Task SubscribeQuote(string symbol, string fields = "0,1,2,3,4,5,8,9,12,13,14,15,24,28")
+        /// <summary>
+        /// Subscribeds to the quote event service
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <returns></returns>
+        public Task SubscribeQuote(string symbols)
         {
             var request = new TDRealtimeRequestContainer
             {
                 requests = new TDRealtimeRequest[]
-                   {
+                {
                     new TDRealtimeRequest
                     {
                         service = "QUOTE",
@@ -314,17 +329,23 @@ namespace TDAmeritrade
                         source = _prince.streamerInfo.appId,
                         parameters = new TDRealtimeParams
                         {
-                            keys = symbol,
-                            fields = fields
+                            keys = symbols,
+                            fields = "0,1,2,3,4,5,8,9,10,11,12,13,14,15,24,28"
                         }
                     }
-                   }
+                }
             };
 
             var data = JsonSerializer.Serialize(request);
             return SendString(data);
         }
 
+        /// <summary>
+        /// Subscribed to the time&sales event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="service">data service to subscribe to</param>
+        /// <returns></returns>
         public Task SubscribeTimeSale(string symbols, TDTimeSaleServices service)
         {
             var request = new TDRealtimeRequestContainer

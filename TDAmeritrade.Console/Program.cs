@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using TDAmeritrade;
 
@@ -73,20 +75,30 @@ namespace TDConsole
 
                     var path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
 
-                    if(!Directory.Exists("../../../Records/"))
-                    {
-                        Directory.CreateDirectory("../../../Records/");
-                    }
-                    if (!File.Exists(path))
-                    {
-                        using (var s = File.Create(path)) { }
-                    }
+                    var ch_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ch.dat";
+                    var ts_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ts.dat";
+                    var qu_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.qu.dat";
+
+                    if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
+
+                    if (!File.Exists(path)) { using (var s = File.Create(path)) { } }
+                    if (!File.Exists(ch_path)) { using (var s = File.Create(ch_path)) { } }
+                    if (!File.Exists(ts_path)) { using (var s = File.Create(ts_path)) { } }
+                    if (!File.Exists(qu_path)) { using (var s = File.Create(qu_path)) { } }
+
+                    var ts_formatter = new BinaryFormatter();
+                    var ch_formatter = new BinaryFormatter();
+                    var qu_formatter = new BinaryFormatter();
+
+                    var ts_fs = new FileStream(ts_path, FileMode.Append);
+                    var ch_fs = new FileStream(ch_path, FileMode.Append);
+                    var qu_fs = new FileStream(qu_path, FileMode.Append);
 
                     using (var socket = new TDAmeritradeStreamClient(client))
                     {
                         socket.OnMessage += (m) =>
                         {
-                            lock (path) 
+                            lock (path)
                             {
                                 using (var s = File.AppendText(path))
                                 {
@@ -95,13 +107,52 @@ namespace TDConsole
                                 Console.WriteLine(m);
                             }
                         };
+
+                        socket.OnTimeSale += o =>
+                        {
+                            lock (ts_path)
+                            {
+                                ts_formatter.Serialize(ts_fs, o);
+                            }
+
+                        };
+                        socket.OnChart += o =>
+                        {
+                            lock (ch_path)
+                            {
+                                ch_formatter.Serialize(ch_fs, o);
+                            }
+                        };
+                        socket.OnQuote += o =>
+                        {
+                            lock (qu_path)
+                            {
+                                qu_formatter.Serialize(qu_fs, o);
+                            }
+                        };
+
                         await socket.Connect();
                         await socket.SubscribeQuote(symbols);
                         await socket.SubscribeChart(symbols, TDAmeritradeClient.IsFutureSymbol(symbols) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
-                        await socket.SubscribeTimeSale(symbols, TDAmeritradeClient.IsFutureSymbol(symbols)  ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
+                        await socket.SubscribeTimeSale(symbols, TDAmeritradeClient.IsFutureSymbol(symbols) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
                         Console.WriteLine("Type any key to quit");
                         Console.ReadLine();
                         await socket.Disconnect();
+                        ts_fs.Dispose();
+                        ch_fs.Dispose();
+                        qu_fs.Dispose();
+
+                        //var list = new List<TDTimeSaleSignal>();
+                        //var bFormatter = new BinaryFormatter();
+                        //using (var temp = new FileStream(ts_path, FileMode.Open))
+                        //{
+                        //    while (temp.Position != temp.Length)
+                        //    {
+                        //        var t = bFormatter.Deserialize(temp);
+                        //        list.Add((TDTimeSaleSignal)t);
+                        //    }
+                        //}
+
                     }
                     break;
                 default:
