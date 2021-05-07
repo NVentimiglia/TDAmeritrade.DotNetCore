@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Specialized;
-using System.Dynamic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -22,8 +20,9 @@ namespace TDAmeritrade
         ClientWebSocket _socket;
         TDPrincipal _prince;
         TDAccount _account;
+        TDAmeritradeJsonParser _parser;
         int _counter;
-        
+
         /// <summary>
         /// Is stream connected
         /// </summary>
@@ -34,20 +33,32 @@ namespace TDAmeritrade
                 return _socket != null && _socket.State == WebSocketState.Open;
             }
         }
-        
-        /// <summary>
-        /// Raw json messages
-        /// </summary>
-        public event Action<string> OnMessage = delegate { };
 
         /// <summary>
-        /// On Heartbeat
+        /// Server Sent Events as raw jso
+        /// </summary>
+        public event Action<string> OnMessage = delegate { };
+        /// <summary>
+        /// Server Sent Event
         /// </summary>
         public event Action<long> OnHeartbeat = delegate { };
+        /// <summary>
+        /// Server Sent Event
+        /// </summary>
+        public event Action<TDQuoteSignal> OnQuote = delegate { };
+        /// <summary>
+        /// Server Sent Event
+        /// </summary>
+        public event Action<TDTimeSaleEquitySignal> OnTimeSaleEquity = delegate { };
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
             _client = client;
+            _parser = new TDAmeritradeJsonParser();
+
+            _parser.OnHeartbeat += OnHeartbeat;
+            _parser.OnQuote += OnQuote;
+            _parser.OnTimeSaleEquity += OnTimeSaleEquity;
         }
 
         public async Task Connect()
@@ -137,7 +148,15 @@ namespace TDAmeritrade
 
         void HandleMessage(string msg)
         {
-            OnMessage(msg);
+            try
+            {
+                OnMessage(msg);
+                _parser.Parse(msg);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Message Error - {ex.Message}");
+            }
         }
 
         async void Cleanup()
@@ -280,7 +299,7 @@ namespace TDAmeritrade
             return SendString(data);
         }
 
-        public Task SubscribeQuote(string symbol)
+        public Task SubscribeQuote(string symbol, string fields = "0,1,2,3,4,5,8,9,12,13,14,15,24,28")
         {
             var request = new TDRealtimeRequestContainer
             {
@@ -296,7 +315,7 @@ namespace TDAmeritrade
                         parameters = new TDRealtimeParams
                         {
                             keys = symbol,
-                            fields = "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
+                            fields = fields
                         }
                     }
                    }

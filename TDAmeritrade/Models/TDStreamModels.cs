@@ -3,6 +3,127 @@ using System.Text.Json.Serialization;
 
 namespace TDAmeritrade
 {
+    public struct TDQuoteSignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>
+        public long timestamp { get; set; }
+        /// <summary>
+        /// 0 Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+
+
+        /// <summary>
+        /// 1 Current Best Bid Price
+        /// </summary>
+        public double bidprice { get; set; }
+        /// <summary>
+        /// 2 Current Best Ask Price
+        /// </summary>
+        public double askprice { get; set; }
+        /// 4 Number of shares for bid
+        /// </summary>
+        public double bidsize { get; set; }
+        /// <summary>
+        /// 5 Number of shares for ask
+        /// </summary>
+        public double asksize { get; set; }
+
+
+        /// <summary>
+        /// 3 Price at which the last trade was matched
+        /// </summary>
+        public double lastprice { get; set; }
+        /// <summary>
+        /// 9 Number of shares traded with last trade
+        /// </summary>
+        public double lastsize { get; set; }
+
+
+        /// <summary>
+        /// <summary>
+        /// 8 Aggregated shares traded throughout the day, including pre/post market hours.
+        /// </summary>
+        public long totalvolume { get; set; }
+        /// <summary>
+        /// 28 Previous day’s opening price
+        /// </summary>
+        public double openprice { get; set; }
+        /// <summary>
+        /// 15 Previous day’s closing price
+        /// </summary>
+        public double closeprice { get; set; }
+        /// <summary>
+        /// 13 Day’s low trade price
+        /// </summary>
+        public double lowprice { get; set; }
+        /// <summary>
+        /// 12 Day’s high trade price
+        /// </summary>
+        public double highprice { get; set; }
+
+        /// <summary>
+        /// 10 Trade time of the last trade
+        /// </summary>
+        public long tradetime { get; set; }
+        /// <summary>
+        /// 11 Quote time of the last trade
+        /// </summary>
+        public long quotetime { get; set; }
+        /// <summary>
+        /// 7 Exchange with the best bid
+        /// </summary>
+        public char bidid { get; set; }
+        /// <summary>
+        /// 6 Exchange with the best ask
+        /// </summary>
+        public char askid { get; set; }
+        /// <summary>
+        /// 14 Indicates Up or Downtick(NASDAQ NMS & Small Cap)
+        /// </summary>
+        public char bidtick { get; set; }
+        /// <summary>
+        /// 24 Option Risk/Volatility Measurement
+        /// </summary>
+        public double volatility { get; set; }
+    }
+
+    public struct TDTimeSaleEquitySignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>
+        public long timestamp { get; set; }
+        /// <summary>
+        /// 0 Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+
+        /// <summary>
+        /// order
+        /// </summary>
+        public long sequence { get; set; }
+
+        /// <summary>
+        /// 1 Trade time of the last trade
+        /// </summary>
+        public long tradetime { get; set; }
+        /// <summary>
+        /// 2 Price at which the last trade was matched
+        /// </summary>
+        public double lastprice { get; set; }
+        /// <summary>
+        /// 9 Number of shares traded with last trade
+        /// </summary>
+        public double lastsize { get; set; }
+        /// <summary>
+        /// 4 Number of Number of shares for bid
+        /// </summary>
+        public float lastsequence { get; set; }
+    }
+
     public enum TDChartSubs
     {
         CHART_EQUITY,

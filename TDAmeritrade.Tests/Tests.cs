@@ -93,5 +93,22 @@ namespace TDAmeritrade.Tests
                 await socket.Disconnect();
             }
         }
+
+        [Test]
+        public async Task TestParser()
+        {
+            var reader = new TDAmeritradeJsonParser();
+
+            int counter = 3;
+            reader.OnHeartbeat += (t) => { counter--; };
+            reader.OnQuote += (quote) => { counter--; };
+            reader.OnTimeSaleEquity += (sale) => { counter--; };
+
+            reader.Parse("{\"notify\":[{\"heartbeat\":\"1620306966752\"}]}");
+            reader.Parse("{\"data\":[{\"service\":\"QUOTE\", \"timestamp\":1620306967787,\"command\":\"SUBS\",\"content\":[{\"key\":\"QQQ\",\"2\":328.75,\"4\":33,\"5\":5,\"6\":\"Q\",\"7\":\"P\",\"11\":33367}]}]}");
+            reader.Parse("{ \"data\":[{ \"service\":\"TIMESALE_EQUITY\", \"timestamp\":1620331268678,\"command\":\"SUBS\",\"content\":[{ \"seq\":206718,\"key\":\"QQQ\",\"1\":1620331267917,\"2\":331.57,\"3\":57.0,\"4\":220028},{ \"seq\":206719,\"key\":\"QQQ\",\"1\":1620331267917,\"2\":331.57,\"3\":188.0,\"4\":220029},{ \"seq\":206720,\"key\":\"QQQ\",\"1\":1620331267920,\"2\":331.57,\"3\":55.0,\"4\":220030},{ \"seq\":206721,\"key\":\"QQQ\",\"1\":1620331268378,\"2\":331.57,\"3\":200.0,\"4\":220031}]},{ \"service\":\"QUOTE\", \"timestamp\":1620331268678,\"command\":\"SUBS\",\"content\":[{ \"key\":\"QQQ\",\"2\":331.58,\"3\":331.57,\"4\":4,\"5\":3,\"6\":\"Q\",\"7\":\"Q\",\"8\":44788535,\"9\":2,\"10\":57668,\"11\":57668}]}]}");
+
+            Assert.IsTrue(counter == 0);
+        }
     }
 }
