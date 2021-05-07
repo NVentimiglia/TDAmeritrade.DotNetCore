@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace TDAmeritrade
 {
+    [Serializable]
     public struct TDQuoteSignal
     {
         /// <summary>
         /// UNIX
-        /// </summary>
+        /// </summary>        
         public long timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
@@ -90,7 +92,8 @@ namespace TDAmeritrade
         public double volatility { get; set; }
     }
 
-    public struct TDTimeSaleEquitySignal
+    [Serializable]
+    public struct TDTimeSaleSignal
     {
         /// <summary>
         /// UNIX
@@ -115,7 +118,7 @@ namespace TDAmeritrade
         /// </summary>
         public double lastprice { get; set; }
         /// <summary>
-        /// 9 Number of shares traded with last trade
+        /// 3 Number of shares traded with last trade
         /// </summary>
         public double lastsize { get; set; }
         /// <summary>
@@ -124,7 +127,7 @@ namespace TDAmeritrade
         public long lastsequence { get; set; }
     }
 
-
+    [Serializable]
     public struct TDChartSignal
     {
         /// <summary>
@@ -157,7 +160,6 @@ namespace TDAmeritrade
         /// 5 Total volume for the minute
         /// </summary>
         public double volume { get; set; }
-
         /// <summary>
         /// 6 Identifies the candle minute
         /// </summary>
@@ -171,7 +173,6 @@ namespace TDAmeritrade
         /// </summary>
         public int chartday { get; set; }
     }
-
     public enum TDChartSubs
     {
         CHART_EQUITY,
