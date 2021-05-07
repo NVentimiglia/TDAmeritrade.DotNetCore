@@ -11,6 +11,7 @@ namespace TDAmeritrade
         public event Action<long> OnHeartbeat = delegate { };
         public event Action<TDQuoteSignal> OnQuote = delegate { };
         public event Action<TDTimeSaleEquitySignal> OnTimeSaleEquity = delegate { };
+        public event Action<TDChartSignal> OnChart = delegate { };
 
         public void Parse(string json)
         {
@@ -26,17 +27,66 @@ namespace TDAmeritrade
                 var content = job["data"].First.Last.First.First as JObject;
                 var tmstamp = job["data"].First["timestamp"].Value<long>();
 
+                if (content == null)
+                    return;
+
                 if (service == "QUOTE")
                 {
                     ParseQuote(tmstamp, content);
                 }
-                else if(service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
+                else if (service == "CHART_EQUITY" || service == "CHART_FUTURES" || service == "CHART_OPTIONS")
+                {
+                    ParseChart(tmstamp, content);
+                }
+                else if (service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
                 {
                     ParseTimeSaleEquity(tmstamp, content);
                 }
             }
         }
 
+        void ParseChart(long tmstamp, JObject content)
+        {
+            var model = new TDChartSignal();
+            model.timestamp = tmstamp;
+            foreach (var item in content)
+            {
+                switch (item.Key)
+                {
+                    case "key":
+                        model.symbol = item.Value.Value<string>();
+                        break;
+                    case "seq":
+                        model.sequence = item.Value.Value<long>();
+                        break;
+                    case "1":
+                        model.openprice = item.Value.Value<double>();
+                        break;
+                    case "2":
+                        model.highprice = item.Value.Value<double>();
+                        break;
+                    case "3":
+                        model.lowprice = item.Value.Value<double>();
+                        break;
+                    case "4":
+                        model.closeprice = item.Value.Value<double>();
+                        break;
+                    case "5":
+                        model.volume = item.Value.Value<double>();
+                        break;
+                    case "6":
+                        model.sequence = item.Value.Value<long>();
+                        break;
+                    case "7":
+                        model.charttime = item.Value.Value<long>();
+                        break;
+                    case "8":
+                        model.chartday = item.Value.Value<int>();
+                        break;
+                }
+            }
+            OnChart(model);
+        }
         void ParseTimeSaleEquity(long tmstamp, JObject content)
         {
             var model = new TDTimeSaleEquitySignal();
@@ -55,13 +105,13 @@ namespace TDAmeritrade
                         model.tradetime = item.Value.Value<long>();
                         break;
                     case "2":
-                        model.lastprice = item.Value.Value<float>();
+                        model.lastprice = item.Value.Value<double>();
                         break;
                     case "3":
-                        model.lastsize = item.Value.Value<float>();
+                        model.lastsize = item.Value.Value<double>();
                         break;
                     case "4":
-                        model.lastsequence = item.Value.Value<float>();
+                        model.lastsequence = item.Value.Value<long>();
                         break;
                 }
             }
@@ -107,10 +157,10 @@ namespace TDAmeritrade
                         quote.lastsize = item.Value.Value<double>();
                         break;
                     case "10":
-                        quote.tradetime = item.Value.Value<int>();
+                        quote.tradetime = item.Value.Value<long>();
                         break;
                     case "11":
-                        quote.quotetime = item.Value.Value<int>();
+                        quote.quotetime = item.Value.Value<long>();
                         break;
                     case "12":
                         quote.highprice = item.Value.Value<double>();

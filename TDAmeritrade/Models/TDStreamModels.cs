@@ -121,7 +121,55 @@ namespace TDAmeritrade
         /// <summary>
         /// 4 Number of Number of shares for bid
         /// </summary>
-        public float lastsequence { get; set; }
+        public long lastsequence { get; set; }
+    }
+
+
+    public struct TDChartSignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>
+        public long timestamp { get; set; }
+        /// <summary>
+        /// 0 Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+
+
+        /// <summary>
+        /// 1 Opening price for the minute
+        /// </summary>
+        public double openprice { get; set; }
+        /// <summary>
+        /// 2 Highest price for the minute
+        /// </summary>
+        public double highprice { get; set; }
+        /// <summary>
+        /// 3 Chart’s lowest price for the minute
+        /// </summary>
+        public double lowprice { get; set; }
+        /// <summary>
+        /// 4 Closing price for the minute
+        /// </summary>
+        public double closeprice { get; set; }
+        /// <summary>
+        /// 5 Total volume for the minute
+        /// </summary>
+        public double volume { get; set; }
+
+        /// <summary>
+        /// 6 Identifies the candle minute
+        /// </summary>
+        public long sequence { get; set; }
+        /// <summary>
+        /// 7 Milliseconds since Epoch
+        /// </summary>
+        public long charttime { get; set; }
+        /// <summary>
+        /// 8 Not useful
+        /// </summary>
+        public int chartday { get; set; }
     }
 
     public enum TDChartSubs
