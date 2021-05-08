@@ -78,6 +78,7 @@ namespace TDConsole
                     var ch_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ch.dat";
                     var ts_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ts.dat";
                     var qu_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.qu.dat";
+                    var al_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";
 
                     if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
 
@@ -85,14 +86,17 @@ namespace TDConsole
                     if (!File.Exists(ch_path)) { using (var s = File.Create(ch_path)) { } }
                     if (!File.Exists(ts_path)) { using (var s = File.Create(ts_path)) { } }
                     if (!File.Exists(qu_path)) { using (var s = File.Create(qu_path)) { } }
+                    if (!File.Exists(al_path)) { using (var s = File.Create(al_path)) { } }
 
                     var ts_formatter = new BinaryFormatter();
                     var ch_formatter = new BinaryFormatter();
                     var qu_formatter = new BinaryFormatter();
+                    var al_formatter = new BinaryFormatter();
 
                     var ts_fs = new FileStream(ts_path, FileMode.Append);
                     var ch_fs = new FileStream(ch_path, FileMode.Append);
                     var qu_fs = new FileStream(qu_path, FileMode.Append);
+                    var al_fs = new FileStream(al_path, FileMode.Append);
 
                     using (var socket = new TDAmeritradeStreamClient(client))
                     {
@@ -114,6 +118,10 @@ namespace TDConsole
                             {
                                 ts_formatter.Serialize(ts_fs, o);
                             }
+                            lock (al_path)
+                            {
+                                ts_formatter.Serialize(al_fs, o);
+                            }
 
                         };
                         socket.OnChart += o =>
@@ -122,12 +130,20 @@ namespace TDConsole
                             {
                                 ch_formatter.Serialize(ch_fs, o);
                             }
+                            lock (al_path)
+                            {
+                                ts_formatter.Serialize(al_fs, o);
+                            }
                         };
                         socket.OnQuote += o =>
                         {
                             lock (qu_path)
                             {
                                 qu_formatter.Serialize(qu_fs, o);
+                            }
+                            lock (al_path)
+                            {
+                                ts_formatter.Serialize(al_fs, o);
                             }
                         };
 
@@ -141,6 +157,7 @@ namespace TDConsole
                         ts_fs.Dispose();
                         ch_fs.Dispose();
                         qu_fs.Dispose();
+                        al_fs.Dispose();
 
                         //var list = new List<TDTimeSaleSignal>();
                         //var bFormatter = new BinaryFormatter();
