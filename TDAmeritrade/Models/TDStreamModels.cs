@@ -1,9 +1,52 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace TDAmeritrade
 {
+    [Serializable]
+    public struct TDHeartbeat
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>        
+        public long timestamp { get; set; }
+    }
+
+    public enum TDBookOptions
+    {
+        /// <summary>
+        /// NYSE
+        /// </summary>
+        LISTED_BOOK,
+        NASDAQ_BOOK,
+        OPTIONS_BOOK,
+    }
+
+    [Serializable]
+    public struct TDBookSignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>        
+        public long timestamp { get; set; }
+        /// <summary>
+        /// 0 Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+        /// <summary>
+        /// 1
+        /// </summary>
+        public long booktime { get; set; }
+        /// <summary>
+        /// 2
+        /// </summary>
+        public double bids { get; set; }
+        /// <summary>
+        /// 3
+        /// </summary>
+        public double asks { get; set; }
+
+    }
+
     [Serializable]
     public struct TDQuoteSignal
     {
@@ -173,6 +216,7 @@ namespace TDAmeritrade
         /// </summary>
         public int chartday { get; set; }
     }
+
     public enum TDChartSubs
     {
         CHART_EQUITY,
@@ -188,22 +232,35 @@ namespace TDAmeritrade
         TIMESALE_OPTIONS,
     }
 
-    public class TDRealtimeParams
+    public enum TDQOSLevels
     {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string credential { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string token { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string version { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string keys { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string fields { get; set; }
+        /// <summary>
+        /// 5000ms
+        /// </summary>
+        DELAYED,
+        /// <summary>
+        /// 3000ms
+        /// </summary>
+        SLOW,
+        /// <summary>
+        /// 1500ms
+        /// </summary>
+        MODERATE,
+        /// <summary>
+        /// 1000ms
+        /// </summary>
+        FAST,
+        /// <summary>
+        /// 750ms
+        /// </summary>
+        REALTIME,
+        /// <summary>
+        /// 500ms
+        /// </summary>
+        EXPRESS,
     }
 
+    [Serializable]
     public class TDRealtimeRequest
     {
         public string service { get; set; }
@@ -211,19 +268,22 @@ namespace TDAmeritrade
         public int requestid { get; set; }
         public string account { get; set; }
         public string source { get; set; }
-        public TDRealtimeParams parameters { get; set; }
+        public object parameters { get; set; }
     }
 
+    [Serializable]
     public class TDRealtimeRequestContainer
     {
         public TDRealtimeRequest[] requests { get; set; }
     }
 
+    [Serializable]
     public class TDRealtimeResponseContainer
     {
         public TDRealtimeResponse[] response { get; set; }
     }
 
+    [Serializable]
     public class TDRealtimeResponse
     {
         public string service { get; set; }
@@ -233,6 +293,7 @@ namespace TDAmeritrade
         public TDRealtimeContent content { get; set; }
     }
 
+    [Serializable]
     public class TDRealtimeContent
     {
         public int code { get; set; }

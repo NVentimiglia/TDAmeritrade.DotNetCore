@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
+
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -20,7 +21,8 @@ namespace TDAmeritrade
         ClientWebSocket _socket;
         TDPrincipal _prince;
         TDAccount _account;
-        TDAmeritradeJsonParser _parser;
+        TDStreamJsonProcessor _parser;
+        JsonSerializerSettings _settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
         int _counter;
 
         /// <summary>
@@ -34,55 +36,55 @@ namespace TDAmeritrade
             }
         }
 
-        /// <summary>
-        /// Server Sent Events as raw jso
-        /// </summary>
-        public event Action<string> OnMessage = delegate { };
-        /// <summary>
-        /// Server Sent Event
-        /// </summary>
-        public event Action<long> OnHeartbeat = delegate { };
-        /// <summary>
-        /// Server Sent Event
-        /// </summary>
-        public event Action<TDQuoteSignal> OnQuote = delegate { };
-        /// <summary>
-        /// Server Sent Event
-        /// </summary>
-        public event Action<TDTimeSaleSignal> OnTimeSale = delegate { };
-        /// <summary>
-        /// Server Sent Event
-        /// </summary>
-        public event Action<TDChartSignal> OnChart = delegate { };
+        /// <summary>Client sent errors</summary>
+        public event Action<Exception> OnException = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<bool> OnConnect = delegate { };
+
+        /// <summary> Server Sent Events as raw json </summary>
+        public event Action<string> OnJsonSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDHeartbeat> OnHeartbeatSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDChartSignal> OnChartSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDQuoteSignal> OnQuoteSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDBookSignal> OnBookSignal = delegate { };
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
             _client = client;
-            _parser = new TDAmeritradeJsonParser();
-            _parser.OnHeartbeat += o => { OnHeartbeat(o); };
-            _parser.OnQuote += o => { OnQuote(o); };
-            _parser.OnTimeSale += o => { OnTimeSale(o); };
-            _parser.OnChart += o => { OnChart(o); };
+            _parser = new TDStreamJsonProcessor(); 
+            _parser.OnHeartbeatSignal += o => { OnHeartbeatSignal(o); };
+            _parser.OnChartSignal += o => { OnChartSignal(o); };
+            _parser.OnQuoteSignal += o => { OnQuoteSignal(o); };
+            _parser.OnTimeSaleSignal += o => { OnTimeSaleSignal(o); };
+            _parser.OnBookSignal += o => { OnBookSignal(o); };
         }
 
+        /// <summary>
+        /// Connects to the live stream service
+        /// </summary>
+        /// <returns></returns>
         public async Task Connect()
         {
-            if (!_client.IsSignedIn)
-            {
-                throw new Exception("Unauthorized");
-            }
-
-            if (_socket != null && _socket.State != WebSocketState.Closed)
-            {
-                throw new Exception("Busy");
-            }
-
-            _prince = await _client.GetPrincipals(TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys, TDPrincipalsFields.preferences);
-            _account = _prince.accounts.Find(o => o.accountId == _prince.primaryAccountId);
-
             try
             {
-                Console.WriteLine($"TDAmeritradeStreamClient Connect");
+                if (!_client.IsSignedIn)
+                {
+                    throw new Exception("Unauthorized");
+                }
+
+                if (_socket != null && _socket.State != WebSocketState.Closed)
+                {
+                    throw new Exception("Busy");
+                }
+
+                _prince = await _client.GetPrincipals(TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys, TDPrincipalsFields.preferences);
+                _account = _prince.accounts.Find(o => o.accountId == _prince.primaryAccountId);
 
                 var path = new Uri("wss://" + _prince.streamerInfo.streamerSocketUrl + "/ws");
                 _socket = new ClientWebSocket();
@@ -97,96 +99,15 @@ namespace TDAmeritrade
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR - {ex.Message}");
+                OnException(ex);
                 Cleanup();
             }
         }
 
-        async void Receive()
-        {
-            Console.WriteLine($"TDAmeritradeStreamClient Receive");
-            var buffer = new ArraySegment<byte>(new byte[2048]);
-            try
-            {
-                do
-                {
-                    WebSocketReceiveResult result;
-                    using (var ms = new MemoryStream())
-                    {
-                        do
-                        {
-                            result = await _socket.ReceiveAsync(buffer, CancellationToken.None);
-                            ms.Write(buffer.Array, buffer.Offset, result.Count);
-                        } while (!result.EndOfMessage);
-
-                        if (result.MessageType == WebSocketMessageType.Close)
-                        {
-                            Console.WriteLine($"WebSocketReceiveResult Close");
-                            break;
-                        }
-
-                        ms.Seek(0, SeekOrigin.Begin);
-
-                        using (var reader = new StreamReader(ms, Encoding.UTF8))
-                        {
-                            var msg = await reader.ReadToEndAsync();
-                            try
-                            {
-                                HandleMessage(msg);
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"ERROR - {ex.Message}");
-                                Cleanup();
-                            }
-                        }
-                    }
-                } while (_socket != null && _socket.State == WebSocketState.Open);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR - {ex.Message}");
-                Cleanup();
-            }
-        }
-
-        void HandleMessage(string msg)
-        {
-            try
-            {
-                OnMessage(msg);
-                _parser.Parse(msg);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Message Error - {ex.Message}");
-            }
-        }
-
-        async void Cleanup()
-        {
-            if (_socket != null)
-            {
-                if (_socket.State == WebSocketState.Open)
-                {
-                    await LogOut();
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
-                }
-                _socket.Dispose();
-                _socket = null;
-            }
-        }
-
-        public async Task SendString(string data)
-        {
-            if (_socket != null)
-            {
-                var encoded = Encoding.UTF8.GetBytes(data);
-                var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
-                await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-        }
-
+        /// <summary>
+        /// Disconnects from the live stream service and logs out
+        /// </summary>
+        /// <returns></returns>
         public async Task Disconnect()
         {
             if (_socket != null)
@@ -207,9 +128,217 @@ namespace TDAmeritrade
             Cleanup();
         }
 
-        Task Login()
+        /// <summary>
+        /// Subscribed to the chart event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="isFutureSymbol">true if symbols are for futures</param>
+        /// <returns></returns>
+        public Task SubscribeChart(string symbols, TDChartSubs service)
         {
-            Console.WriteLine($"TDAmeritradeStreamClient Login");
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                    {
+                    new TDRealtimeRequest
+                    {
+                        service = service.ToString(),
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
+                            fields = "0,1,2,3,4,5,6,7,8"
+                        }
+                    }
+                    }
+            };
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Subscribeds to the quote event service
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <returns></returns>
+        public Task SubscribeQuote(string symbols)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = "QUOTE",
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
+                            fields = "0,1,2,3,4,5,8,9,10,11,12,13,14,15,24,28"
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Subscribed to the time&sales event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="service">data service to subscribe to</param>
+        /// <returns></returns>
+        public Task SubscribeTimeSale(string symbols, TDTimeSaleServices service)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = service.ToString(),
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
+                            fields = "0,1,2,3,4"
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Subscribe to the level two order book. Note this stream has no official documentation, and it's not entirely clear what exchange it corresponds to.Use at your own risk.
+        /// </summary>
+        /// <returns></returns>
+        public Task SubscribeBook(string symbols, TDBookOptions option)
+        {
+
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = option.ToString(),
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            symbol = symbols,
+                            fields = "0,1,2,3"
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Quality of Service provides the different rates of data updates per protocol (binary, websocket etc), or per user based.
+        /// </summary>
+        /// <param name="quality">Quality of Service, or the rate the data will be sent to the client.</param>
+        /// <returns></returns>
+        public Task RequestQOS(TDQOSLevels quality)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = "ADMIN",
+                        command = "SUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            qoslevel = ((int)quality)
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        //
+
+        /// <summary>
+        /// Sends a request to the server
+        public async Task SendToServer(string data)
+        {
+            if (_socket != null)
+            {
+                var encoded = Encoding.UTF8.GetBytes(data);
+                var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+                await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+
+        //
+
+        private async void Receive()
+        {
+            var buffer = new ArraySegment<byte>(new byte[2048]);
+            try
+            {
+                do
+                {
+                    WebSocketReceiveResult result;
+                    using (var ms = new MemoryStream())
+                    {
+                        do
+                        {
+                            result = await _socket.ReceiveAsync(buffer, CancellationToken.None);
+                            ms.Write(buffer.Array, buffer.Offset, result.Count);
+                        } while (!result.EndOfMessage);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            throw new Exception("WebSocketMessageType.Close");
+                        }
+
+                        ms.Seek(0, SeekOrigin.Begin);
+
+                        using (var reader = new StreamReader(ms, Encoding.UTF8))
+                        {
+                            var msg = await reader.ReadToEndAsync();
+                            HandleMessage(msg);
+                        }
+                    }
+                } while (_socket != null && _socket.State == WebSocketState.Open);
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+                Cleanup();
+            }
+        }
+
+        private Task Login()
+        {
             //Converts ISO-8601 response in snapshot to ms since epoch accepted by Streamer
             var tokenTimeStampAsDateObj = DateTime.Parse(_prince.streamerInfo.tokenTimestamp);
             var tokenTimeStampAsMs = tokenTimeStampAsDateObj.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
@@ -244,7 +373,7 @@ namespace TDAmeritrade
                         requestid = Interlocked.Increment(ref _counter),
                         account = _account.accountId,
                         source = _prince.streamerInfo.appId,
-                        parameters = new TDRealtimeParams
+                        parameters = new
                         {
                             token = _prince.streamerInfo.token,
                             version = "1.0",
@@ -253,10 +382,11 @@ namespace TDAmeritrade
                     }
                 }
             };
-            var data = JsonSerializer.Serialize(request);
-            return SendString(data);
+            var data = JsonConvert.SerializeObject(request);
+            return SendToServer(data);
         }
-        Task LogOut()
+
+        private Task LogOut()
         {
             Console.WriteLine($"TDAmeritradeStreamClient LogOut");
             var request = new TDRealtimeRequestContainer
@@ -270,106 +400,40 @@ namespace TDAmeritrade
                         requestid = Interlocked.Increment(ref _counter),
                         account = _account.accountId,
                         source = _prince.streamerInfo.appId,
-                        parameters = new TDRealtimeParams { }
+                        parameters = new { }
                     }
                 }
             };
-            var data = JsonSerializer.Serialize(request);
-            return SendString(data);
+            var data = JsonConvert.SerializeObject(request);
+            return SendToServer(data);
         }
 
-        /// <summary>
-        /// Subscribed to the chart event service
-        /// </summary>
-        /// <param name="symbols">spy,qqq,amd</param>
-        /// <param name="isFutureSymbol">true if symbols are for futures</param>
-        /// <returns></returns>
-        public Task SubscribeChart(string symbols, TDChartSubs service)
+        private void HandleMessage(string msg)
         {
-            var request = new TDRealtimeRequestContainer
+            try
             {
-                requests = new TDRealtimeRequest[]
-                    {
-                    new TDRealtimeRequest
-                    {
-                        service = service.ToString(),
-                        command = "SUBS",
-                        requestid = Interlocked.Increment(ref _counter),
-                        account = _account.accountId,
-                        source = _prince.streamerInfo.appId,
-                        parameters = new TDRealtimeParams
-                        {
-                            keys = symbols,
-                            fields = "0,1,2,3,4,5,6,7,8"
-                        }
-                    }
-                    }
-            };
-            var data = JsonSerializer.Serialize(request);
-            return SendString(data);
+                OnJsonSignal(msg);
+                _parser.Parse(msg);
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+                //Do not cleanup, this is a user code issue
+            }
         }
 
-        /// <summary>
-        /// Subscribeds to the quote event service
-        /// </summary>
-        /// <param name="symbols"></param>
-        /// <returns></returns>
-        public Task SubscribeQuote(string symbols)
+        private async void Cleanup()
         {
-            var request = new TDRealtimeRequestContainer
+            if (_socket != null)
             {
-                requests = new TDRealtimeRequest[]
+                if (_socket.State == WebSocketState.Open)
                 {
-                    new TDRealtimeRequest
-                    {
-                        service = "QUOTE",
-                        command = "SUBS",
-                        requestid = Interlocked.Increment(ref _counter),
-                        account = _account.accountId,
-                        source = _prince.streamerInfo.appId,
-                        parameters = new TDRealtimeParams
-                        {
-                            keys = symbols,
-                            fields = "0,1,2,3,4,5,8,9,10,11,12,13,14,15,24,28"
-                        }
-                    }
+                    await LogOut();
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
                 }
-            };
-
-            var data = JsonSerializer.Serialize(request);
-            return SendString(data);
-        }
-
-        /// <summary>
-        /// Subscribed to the time&sales event service
-        /// </summary>
-        /// <param name="symbols">spy,qqq,amd</param>
-        /// <param name="service">data service to subscribe to</param>
-        /// <returns></returns>
-        public Task SubscribeTimeSale(string symbols, TDTimeSaleServices service)
-        {
-            var request = new TDRealtimeRequestContainer
-            {
-                requests = new TDRealtimeRequest[]
-                {
-                    new TDRealtimeRequest
-                    {
-                        service = service.ToString(),
-                        command = "SUBS",
-                        requestid = Interlocked.Increment(ref _counter),
-                        account = _account.accountId,
-                        source = _prince.streamerInfo.appId,
-                        parameters = new TDRealtimeParams
-                        {
-                            keys = symbols,
-                            fields = "0,1,2,3,4"
-                        }
-                    }
-                }
-            };
-
-            var data = JsonSerializer.Serialize(request);
-            return SendString(data);
+                _socket.Dispose();
+                _socket = null;
+            }
         }
     }
 }

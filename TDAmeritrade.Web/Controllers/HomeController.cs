@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.Json;
+
 using System.Threading.Tasks;
 using TDAmeritrade.Web.Models;
 
@@ -28,14 +28,14 @@ namespace TDAmeritrade.Web.Controllers
 
         public IActionResult RequestAccessToken(string consumerKey)
         {
-            var path = _client.RequestAccessToken(consumerKey, navigate: false);
+            var path = _client.GetSignInUrl(consumerKey);
             _logger.LogInformation(path);
             return Redirect(path);
         }
 
         public async Task<IActionResult> PostAccessToken(string consumerKey, string code)
         {
-            await _client.PostAccessToken(consumerKey, code);
+            await _client.SignIn(consumerKey, code);
             return View("Index");
         }
 
@@ -44,7 +44,7 @@ namespace TDAmeritrade.Web.Controllers
         {
             if (!_client.IsSignedIn)
             {
-                await _client.PostRefreshToken();
+                await _client.SignIn();
             }
             var data = await _client.GetQuoteJson(symbol);
             return Content(data);

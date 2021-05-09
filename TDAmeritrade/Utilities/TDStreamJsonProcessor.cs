@@ -6,12 +6,18 @@ namespace TDAmeritrade
     /// <summary>
     /// Utility for deserializing stream messages
     /// </summary>
-    public class TDAmeritradeJsonParser
+    public class TDStreamJsonProcessor
     {
-        public event Action<long> OnHeartbeat = delegate { };
-        public event Action<TDQuoteSignal> OnQuote = delegate { };
-        public event Action<TDTimeSaleSignal> OnTimeSale = delegate { };
-        public event Action<TDChartSignal> OnChart = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDHeartbeat> OnHeartbeatSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDChartSignal> OnChartSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDQuoteSignal> OnQuoteSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDBookSignal> OnBookSignal = delegate { };
 
         public void Parse(string json)
         {
@@ -19,7 +25,7 @@ namespace TDAmeritrade
 
             if (job.ContainsKey("notify"))
             {
-                OnHeartbeat(job["notify"].First.First.ToObject<long>());
+                ParseHeartbeat(job["notify"].First.First.ToObject<long>());
             }
             else if (job.ContainsKey("data"))
             {
@@ -42,11 +48,46 @@ namespace TDAmeritrade
                 {
                     ParseChartEquity(tmstamp, content);
                 }
+                else if (service == "LISTED_BOOK" || service == "NASDAQ_BOOK" || service == "OPTIONS_BOOK")
+                {
+                    ParseBook(tmstamp, content);
+                }
                 else if (service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
                 {
                     ParseTimeSaleEquity(tmstamp, content);
                 }
             }
+        }
+
+        void ParseHeartbeat(long tmstamp)
+        {
+            var model = new TDHeartbeat { timestamp = tmstamp };
+            OnHeartbeatSignal(model);
+        }
+
+        void ParseBook(long tmstamp, JObject content)
+        {
+            var model = new TDBookSignal();
+            model.timestamp = tmstamp;
+            foreach (var item in content)
+            {
+                switch (item.Key)
+                {
+                    case "key":
+                        model.symbol = item.Value.Value<string>();
+                        break;
+                    case "1":
+                        model.booktime = item.Value.Value<long>();
+                        break;
+                    case "2":
+                        model.bids = item.Value.Value<double>();
+                        break;
+                    case "3":
+                        model.asks = item.Value.Value<double>();
+                        break;
+                }
+            }
+            OnBookSignal(model);
         }
 
         void ParseChartFutures(long tmstamp, JObject content)
@@ -83,8 +124,9 @@ namespace TDAmeritrade
                         break;
                 }
             }
-            OnChart(model);
+            OnChartSignal(model);
         }
+
         void ParseChartEquity(long tmstamp, JObject content)
         {
             var model = new TDChartSignal();
@@ -125,8 +167,9 @@ namespace TDAmeritrade
                         break;
                 }
             }
-            OnChart(model);
+            OnChartSignal(model);
         }
+
         void ParseTimeSaleEquity(long tmstamp, JObject content)
         {
             var model = new TDTimeSaleSignal();
@@ -155,74 +198,74 @@ namespace TDAmeritrade
                         break;
                 }
             }
-            OnTimeSale(model);
+            OnTimeSaleSignal(model);
         }
 
         void ParseQuote(long tmstamp, JObject content)
         {
-            var quote = new TDQuoteSignal();
-            quote.timestamp = tmstamp;
+            var model = new TDQuoteSignal();
+            model.timestamp = tmstamp;
             foreach (var item in content)
             {
                 switch (item.Key)
                 {
                     case "key":
-                        quote.symbol = item.Value.Value<string>();
+                        model.symbol = item.Value.Value<string>();
                         break;
                     case "1":
-                        quote.bidprice = item.Value.Value<double>();
+                        model.bidprice = item.Value.Value<double>();
                         break;
                     case "2":
-                        quote.askprice = item.Value.Value<double>();
+                        model.askprice = item.Value.Value<double>();
                         break;
                     case "3":
-                        quote.lastprice = item.Value.Value<double>();
+                        model.lastprice = item.Value.Value<double>();
                         break;
                     case "4":
-                        quote.bidsize = item.Value.Value<double>();
+                        model.bidsize = item.Value.Value<double>();
                         break;
                     case "5":
-                        quote.asksize = item.Value.Value<double>();
+                        model.asksize = item.Value.Value<double>();
                         break;
                     case "6":
-                        quote.askid = item.Value.Value<char>();
+                        model.askid = item.Value.Value<char>();
                         break;
                     case "7":
-                        quote.bidid = item.Value.Value<char>();
+                        model.bidid = item.Value.Value<char>();
                         break;
                     case "8":
-                        quote.totalvolume = item.Value.Value<long>();
+                        model.totalvolume = item.Value.Value<long>();
                         break;
                     case "9":
-                        quote.lastsize = item.Value.Value<double>();
+                        model.lastsize = item.Value.Value<double>();
                         break;
                     case "10":
-                        quote.tradetime = item.Value.Value<long>();
+                        model.tradetime = item.Value.Value<long>();
                         break;
                     case "11":
-                        quote.quotetime = item.Value.Value<long>();
+                        model.quotetime = item.Value.Value<long>();
                         break;
                     case "12":
-                        quote.highprice = item.Value.Value<double>();
+                        model.highprice = item.Value.Value<double>();
                         break;
                     case "13":
-                        quote.lowprice = item.Value.Value<double>();
+                        model.lowprice = item.Value.Value<double>();
                         break;
                     case "14":
-                        quote.bidtick = item.Value.Value<char>();
+                        model.bidtick = item.Value.Value<char>();
                         break;
                     case "15":
-                        quote.closeprice = item.Value.Value<double>();
+                        model.closeprice = item.Value.Value<double>();
                         break;
                     case "24":
-                        quote.volatility = item.Value.Value<double>();
+                        model.volatility = item.Value.Value<double>();
                         break;
                     case "28":
-                        quote.openprice = item.Value.Value<double>();
+                        model.openprice = item.Value.Value<double>();
                         break;
                 }
             }
-            OnQuote(quote);
+            OnQuoteSignal(model);
         }
     }
 }
