@@ -24,6 +24,7 @@ namespace TDAmeritrade
         TDStreamJsonProcessor _parser;
         JsonSerializerSettings _settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
         int _counter;
+        bool _connected;
 
         /// <summary>
         /// Is stream connected
@@ -32,7 +33,14 @@ namespace TDAmeritrade
         {
             get
             {
-                return _socket != null && _socket.State == WebSocketState.Open;
+                return _connected;
+            }
+            private set
+            {
+                if (_connected == value)
+                    return;
+                _connected = value;
+                OnConnect(value);
             }
         }
 
@@ -57,7 +65,7 @@ namespace TDAmeritrade
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
             _client = client;
-            _parser = new TDStreamJsonProcessor(); 
+            _parser = new TDStreamJsonProcessor();
             _parser.OnHeartbeatSignal += o => { OnHeartbeatSignal(o); };
             _parser.OnChartSignal += o => { OnChartSignal(o); };
             _parser.OnQuoteSignal += o => { OnQuoteSignal(o); };
@@ -95,6 +103,7 @@ namespace TDAmeritrade
                 {
                     await Login();
                     Receive();
+                    IsConnected = true;
                 }
             }
             catch (Exception ex)
@@ -116,10 +125,12 @@ namespace TDAmeritrade
                 {
                     await LogOut();
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
+                    OnConnect(IsConnected);
                 }
                 _socket.Dispose();
-                _socket = null;                
+                _socket = null;
             }
+            IsConnected = false;
         }
 
         public void Dispose()
@@ -431,6 +442,7 @@ namespace TDAmeritrade
                 _socket.Dispose();
                 _socket = null;
             }
+            IsConnected = false;
         }
     }
 }

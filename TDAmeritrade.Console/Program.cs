@@ -64,7 +64,7 @@ namespace TDConsole
                     break;
             }
 
-            Console.WriteLine("Type any key to quit");
+            Console.WriteLine("Type any key to exit");
             Console.ReadLine();
         }
 
@@ -121,7 +121,7 @@ namespace TDConsole
                     if (!terminated)
                     {
                         Console.WriteLine("Retrying...");
-                        await Task.Delay(1000);
+                        await Task.Delay(5000);
                         Connect();
                     }
                 }
