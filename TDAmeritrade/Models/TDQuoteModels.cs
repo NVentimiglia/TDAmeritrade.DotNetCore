@@ -1,5 +1,8 @@
-﻿namespace TDAmeritrade
+﻿using System;
+
+namespace TDAmeritrade
 {
+    [Serializable]
     public abstract class TDQuoteBase
     {
         public string symbol { get; set; }
@@ -8,6 +11,7 @@
         public string securityStatus { get; set; }
     }
 
+    [Serializable]
     public class MarketQuoteBase : TDQuoteBase
     {
         public double bidPrice { get; set; }
@@ -29,6 +33,7 @@
         public double volatility { get; set; }
     }
 
+    [Serializable]
     public class TDEquityQuote : MarketQuoteBase
     {
         public string bidId { get; set; }
@@ -49,6 +54,7 @@
         public long regularMarketTradeTimeInLong { get; set; }
     }
 
+    [Serializable]
     public class TDFundQuote : TDQuoteBase
     {
         public double closePrice { get; set; }
@@ -66,6 +72,7 @@
         public string divDate { get; set; }
     }
 
+    [Serializable]
     public class FutureQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
@@ -96,6 +103,7 @@
         public string futureExpirationDate { get; set; }
     }
 
+    [Serializable]
     public class FutureOptionsQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
@@ -136,6 +144,7 @@
     /// <summary>
     ///  SPY,$SPX.X, QQQ,$NDX.X, IWM,$RUT.X, IYY,$DJI2MN Vol indexes $VIX.X,$VXX.X,$VXN.X,$RVX.X
     /// </summary>
+    [Serializable]
     public class TDIndexQuote : TDQuoteBase
     {
         public double lastPrice { get; set; }
@@ -151,6 +160,7 @@
         public double _52WkHigh { get; set; }
         public double _52WkLow { get; set; }
     }
+    [Serializable]
     public class TDForexQuote : TDQuoteBase
     {
         public double bidPriceInDouble { get; set; }
@@ -175,6 +185,7 @@
         public int mark { get; set; }
     }
 
+    [Serializable]
     public class TDOptionQuote : MarketQuoteBase
     {
         public int openInterest { get; set; }

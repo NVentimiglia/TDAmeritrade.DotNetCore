@@ -1,7 +1,9 @@
 ﻿using System;
 
 namespace TDAmeritrade
-{    public struct TDPriceCandle
+{
+    [Serializable]
+    public struct TDPriceCandle
     {
         public double close { get; set; }
         public double datetime { get; set; }
@@ -12,8 +14,10 @@ namespace TDAmeritrade
     }
 
 
+    [Serializable]
     public struct TDPriceHistoryRequest
     {
+        [Serializable]
         public enum PeriodTypes
         {
             day,
@@ -21,7 +25,7 @@ namespace TDAmeritrade
             year,
             ytd
         }
-
+        [Serializable]
         public enum FrequencyType
         {
             minute,

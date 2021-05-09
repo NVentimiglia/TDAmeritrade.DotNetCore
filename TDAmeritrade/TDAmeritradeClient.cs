@@ -191,12 +191,12 @@ namespace TDAmeritrade
         /// Get option chain for an optionable Symbol
         /// https://developer.tdameritrade.com/option-chains/apis/get/marketdata/chains
         /// </summary>
-        public async Task<OptionChain> GetOptionsChain(TDOptionChainRequest request)
+        public async Task<TDOptionChain> GetOptionsChain(TDOptionChainRequest request)
         {
             var json = await GetOptionsChainJson(request);
             if (!IsNullOrEmpty(json))
             {
-                return JsonConvert.DeserializeObject<OptionChain>(json);
+                return JsonConvert.DeserializeObject<TDOptionChain>(json);
             }
             return null;
         }

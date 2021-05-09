@@ -11,6 +11,7 @@ namespace TDAmeritrade
         public long timestamp { get; set; }
     }
 
+    [Serializable]
     public enum TDBookOptions
     {
         LISTED_BOOK,
@@ -217,6 +218,7 @@ namespace TDAmeritrade
         public int chartday { get; set; }
     }
 
+    [Serializable]
     public enum TDChartSubs
     {
         CHART_EQUITY,
@@ -224,6 +226,7 @@ namespace TDAmeritrade
         CHART_FUTURES,
     }
 
+    [Serializable]
     public enum TDTimeSaleServices
     {
         TIMESALE_EQUITY,
@@ -232,6 +235,7 @@ namespace TDAmeritrade
         TIMESALE_OPTIONS,
     }
 
+    [Serializable]
     public enum TDQOSLevels
     {
         /// <summary>

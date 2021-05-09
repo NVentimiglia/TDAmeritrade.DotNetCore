@@ -1,5 +1,8 @@
-﻿namespace TDAmeritrade
+﻿using System;
+
+namespace TDAmeritrade
 {
+    [Serializable]
     public class TDAuthResult
     {
         public string redirect_url { get; set; }

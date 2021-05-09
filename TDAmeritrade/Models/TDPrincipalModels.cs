@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TDAmeritrade
 {
+    [Serializable]
     public class TDStreamerInfo
     {
         public string streamerBinaryUrl { get; set; }
@@ -14,6 +16,7 @@ namespace TDAmeritrade
         public string appId { get; set; }
     }
 
+    [Serializable]
     public class TDQuotes
     {
         public bool isNyseDelayed { get; set; }
@@ -25,16 +28,19 @@ namespace TDAmeritrade
         public bool isForexDelayed { get; set; }
     }
 
+    [Serializable]
     public class TDKey
     {
         public string key { get; set; }
     }
 
+    [Serializable]
     public class TDStreamerSubscriptionKeys
     {
         public List<TDKey> keys { get; set; }
     }
 
+    [Serializable]
     public class TDPreferences
     {
         public bool expressTrading { get; set; }
@@ -53,6 +59,7 @@ namespace TDAmeritrade
         public string authTokenTimeout { get; set; }
     }
 
+    [Serializable]
     public class TDAuthorizations
     {
         public bool apex { get; set; }
@@ -66,6 +73,7 @@ namespace TDAmeritrade
         public bool scottradeAccount { get; set; }
     }
 
+    [Serializable]
     public class TDAccount
     {
         public string accountId { get; set; }
@@ -79,6 +87,8 @@ namespace TDAmeritrade
         public string acl { get; set; }
         public TDAuthorizations authorizations { get; set; }
     }
+
+    [Serializable]
     public class TDPrincipal
     {
         public string authToken { get; set; }

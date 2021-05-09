@@ -164,7 +164,9 @@ namespace TDConsole
                         {
                             s.WriteLine(m);
                         }
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                         formater.Serialize(stream, m);
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
                     }
                 };
 

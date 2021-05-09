@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace TDAmeritrade
 {
+    [Serializable]
     public enum TDOptionChainTypes
     {
         ALL,
@@ -10,6 +11,7 @@ namespace TDAmeritrade
         CALL
     }
 
+    [Serializable]
     public enum TDOptionChainStrategy
     {
         SINGLE,
@@ -26,6 +28,7 @@ namespace TDAmeritrade
         ROLL
     }
 
+    [Serializable]
     public enum TDOptionChainOptionTypes
     {
         /// <summary>
@@ -51,6 +54,7 @@ namespace TDAmeritrade
     /// SNK: Strikes Near Market
     /// ALL: All Strikes
     /// </summary>
+    [Serializable]
     public enum TDOptionChainRanges
     {
         /// ALL: All Strikes
@@ -70,6 +74,7 @@ namespace TDAmeritrade
     }
 
 
+    [Serializable]
     public class TDOptionChainRequest
     {
         /// <summary>
@@ -139,11 +144,12 @@ namespace TDAmeritrade
         public TDOptionChainOptionTypes optionType { get; set; }
     }
 
-    public class OptionChain
+    [Serializable]
+    public class TDOptionChain
     {
         public string symbol { get; set; }
         public string status { get; set; }
-        public Underlying underlying { get; set; }
+        public TDUnderlying underlying { get; set; }
         public string strategy { get; set; }
         public int interval { get; set; }
         public bool isDelayed { get; set; }
@@ -156,7 +162,8 @@ namespace TDAmeritrade
         public string putExpDateMap { get; set; }
     }
 
-    public class OptionDeliverablesList
+    [Serializable]
+    public class TDOptionDeliverablesList
     {
         public string symbol { get; set; }
         public string assetType { get; set; }
@@ -164,7 +171,8 @@ namespace TDAmeritrade
         public string currencyType { get; set; }
     }
 
-    public class Option
+    [Serializable]
+    public class TDOption
     {
         public string putCall { get; set; }
         public string symbol { get; set; }
@@ -198,7 +206,7 @@ namespace TDAmeritrade
         public int theoreticalVolatility { get; set; }
         public bool isMini { get; set; }
         public bool isNonStandard { get; set; }
-        public List<OptionDeliverablesList> optionDeliverablesList { get; set; }
+        public List<TDOptionDeliverablesList> optionDeliverablesList { get; set; }
         public int strikePrice { get; set; }
         public string expirationDate { get; set; }
         public string expirationType { get; set; }
@@ -211,7 +219,8 @@ namespace TDAmeritrade
         public int markPercentChange { get; set; }
     }
 
-    public class Underlying
+    [Serializable]
+    public class TDUnderlying
     {
         public int ask { get; set; }
         public int askSize { get; set; }
@@ -239,12 +248,14 @@ namespace TDAmeritrade
     }
 
 
-    public class ExpirationDate
+    [Serializable]
+    public class TDExpirationDate
     {
         public string date { get; set; }
     }
 
-    public class OptionDeliverables
+    [Serializable]
+    public class TDOptionDeliverables
     {
         public string symbol { get; set; }
         public string assetType { get; set; }

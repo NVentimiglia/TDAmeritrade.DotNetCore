@@ -1,5 +1,8 @@
-﻿namespace TDAmeritrade
+﻿using System;
+
+namespace TDAmeritrade
 {
+    [Serializable]
     public enum TDPrincipalsFields
     {
         streamerSubscriptionKeys,
