@@ -122,7 +122,12 @@ namespace TDAmeritrade.Tests
                 await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_EQUITY);
                 await socket.SubscribeBook(symbol, TDBookOptions.LISTED_BOOK);
                 await socket.SubscribeBook(symbol, TDBookOptions.NASDAQ_BOOK);
-                await Task.Delay(2000);
+                for (int i = 0; i < 10; i++)
+                {
+                    await Task.Delay(1000);
+                    if (socket.IsConnected)
+                        break;
+                }
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }
@@ -144,7 +149,14 @@ namespace TDAmeritrade.Tests
                 await socket.SubscribeQuote(symbol);
                 await socket.SubscribeChart(symbol, TDChartSubs.CHART_FUTURES);
                 await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_FUTURES);
-                await Task.Delay(2000);
+
+                for (int i = 0; i < 10; i++)
+                {
+                    await Task.Delay(1000);
+                    if (socket.IsConnected)
+                        break;
+                }
+
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }

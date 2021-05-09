@@ -429,7 +429,7 @@ namespace TDAmeritrade
                 throw (new Exception("ConsumerKey is null"));
             }
 
-            var arg = string.Join(',', fields.Select(o => o.ToString()));
+            var arg = string.Join(",", fields.Select(o => o.ToString()));
 
             var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
 

@@ -3,7 +3,7 @@
 namespace TDAmeritrade
 {
     [Serializable]
-    public struct TDHeartbeat
+    public struct TDHeartbeatSignal
     {
         /// <summary>
         /// UNIX

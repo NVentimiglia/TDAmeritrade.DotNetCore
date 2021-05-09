@@ -9,7 +9,7 @@ namespace TDAmeritrade
     public class TDStreamJsonProcessor
     {
         /// <summary> Server Sent Events </summary>
-        public event Action<TDHeartbeat> OnHeartbeatSignal = delegate { };
+        public event Action<TDHeartbeatSignal> OnHeartbeatSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDChartSignal> OnChartSignal = delegate { };
         /// <summary> Server Sent Events </summary>
@@ -61,7 +61,7 @@ namespace TDAmeritrade
 
         void ParseHeartbeat(long tmstamp)
         {
-            var model = new TDHeartbeat { timestamp = tmstamp };
+            var model = new TDHeartbeatSignal { timestamp = tmstamp };
             OnHeartbeatSignal(model);
         }
 

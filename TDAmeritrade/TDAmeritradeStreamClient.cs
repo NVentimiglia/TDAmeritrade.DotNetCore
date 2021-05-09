@@ -52,7 +52,7 @@ namespace TDAmeritrade
         /// <summary> Server Sent Events as raw json </summary>
         public event Action<string> OnJsonSignal = delegate { };
         /// <summary> Server Sent Events </summary>
-        public event Action<TDHeartbeat> OnHeartbeatSignal = delegate { };
+        public event Action<TDHeartbeatSignal> OnHeartbeatSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDChartSignal> OnChartSignal = delegate { };
         /// <summary> Server Sent Events </summary>
