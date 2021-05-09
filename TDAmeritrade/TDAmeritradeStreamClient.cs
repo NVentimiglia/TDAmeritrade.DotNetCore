@@ -227,7 +227,6 @@ namespace TDAmeritrade
         /// <returns></returns>
         public Task SubscribeBook(string symbols, TDBookOptions option)
         {
-
             var request = new TDRealtimeRequestContainer
             {
                 requests = new TDRealtimeRequest[]
@@ -241,7 +240,7 @@ namespace TDAmeritrade
                         source = _prince.streamerInfo.appId,
                         parameters = new
                         {
-                            symbol = symbols,
+                            keys = symbols,
                             fields = "0,1,2,3"
                         }
                     }

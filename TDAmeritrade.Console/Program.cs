@@ -141,6 +141,7 @@ namespace TDConsole
                             await socket.SubscribeTimeSale(symbols, IsFutureSymbol(symbols) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
                             await socket.SubscribeBook(symbols, TDBookOptions.LISTED_BOOK);
                             await socket.SubscribeBook(symbols, TDBookOptions.NASDAQ_BOOK);
+                            await socket.SubscribeBook(symbols, TDBookOptions.FUTURES_BOOK);
                         }
                         else if (!terminated)
                         {

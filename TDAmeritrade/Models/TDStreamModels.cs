@@ -13,12 +13,12 @@ namespace TDAmeritrade
 
     public enum TDBookOptions
     {
-        /// <summary>
-        /// NYSE
-        /// </summary>
         LISTED_BOOK,
         NASDAQ_BOOK,
         OPTIONS_BOOK,
+        FUTURES_BOOK,
+        FOREX_BOOK,
+        FUTURES_OPTIONS_BOOK,
     }
 
     [Serializable]
