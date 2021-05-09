@@ -7,43 +7,59 @@ namespace TDAmeritrade.Tests
     {
         TDAmeritradeClient client;
 
-
         [SetUp]
         public async Task Init()
         {
             // Please sign in first, following services uses the client file
             var cache = new TDUnprotectedCache();
             client = new TDAmeritradeClient(cache);
-            await client.PostRefreshToken();
+            await client.SignIn();
             Assert.IsTrue(client.IsSignedIn);
         }
 
         [Test]
         public async Task TestTDQuoteClient_Equity()
         {
-            var data = await client.GetQuote<TDEquityQuote>("MSFT");
+            var data = await client.GetQuote_Equity("MSFT");
             Assert.IsTrue(data.symbol == "MSFT");
         }
 
         [Test]
         public async Task TestTDQuoteClient_Index()
         {
-            var data = await client.GetQuote<TDIndexQuote>("$SPX");
-            Assert.IsTrue(data.symbol == "$SPX");
+            var data = await client.GetQuote_Index("$SPX.X");
+            Assert.IsTrue(data.symbol == "$SPX.X");
         }
 
         [Test]
         public async Task TestTDQuoteClient_Future()
         {
-            var data = await client.GetQuote<TDFundQuote>("/ES");
+            var data = await client.GetQuote_Future("/ES");
             Assert.IsTrue(data.symbol == "ES");
         }
 
         [Test]
         public async Task TestTDQuoteClient_Option()
         {
-            var data = await client.GetQuote<TDOptionQuote>("SPY_231215C500");
+            var data = await client.GetQuote_Option("SPY_231215C500");
             Assert.IsTrue(data.symbol == "SPY_231215C500");
+        }
+
+        [Test]
+        public async Task TestPriceHistory_NoAuth()
+        {
+            client.SignOut(true, false);
+
+            var data = await client.GetPriceHistory(new TDPriceHistoryRequest
+            {
+                symbol = "MSFT",
+                frequencyType = TDPriceHistoryRequest.FrequencyType.minute,
+                frequency = 5,
+                periodType = TDPriceHistoryRequest.PeriodTypes.day,
+                period = 5,
+            });
+
+            Assert.IsTrue(data.Length > 0);
         }
 
         [Test]
@@ -51,11 +67,11 @@ namespace TDAmeritrade.Tests
         {
             var data = await client.GetPriceHistory(new TDPriceHistoryRequest
             {
-                symbol = "SPY",
+                symbol = "MSFT",
                 frequencyType = TDPriceHistoryRequest.FrequencyType.minute,
                 frequency = 5,
                 periodType = TDPriceHistoryRequest.PeriodTypes.day,
-                period = 2,
+                period = 5,
             });
 
             Assert.IsTrue(data.Length > 0);
@@ -78,21 +94,57 @@ namespace TDAmeritrade.Tests
         }
 
         [Test]
+        public async Task TestQOSRequest()
+        {
+            await client.SignIn();
+            using (var socket = new TDAmeritradeStreamClient(client))
+            {
+                await socket.Connect();
+                await socket.RequestQOS(TDQOSLevels.FAST);
+            }
+        }
+
+        [Test]
         public async Task TestRealtimeStream()
         {
-            await client.PostRefreshToken();
+            await client.SignIn();
             using (var socket = new TDAmeritradeStreamClient(client))
             {
                 var symbol = "SPY";
-                socket.OnHeartbeat += o => { };
-                socket.OnQuote += o => { };
-                socket.OnTimeSale += o => { };
-                socket.OnChart += o => { };
+                socket.OnHeartbeatSignal += o => { };
+                socket.OnQuoteSignal += o => { };
+                socket.OnTimeSaleSignal += o => { };
+                socket.OnChartSignal += o => { };
+                socket.OnBookSignal += o => { };
                 await socket.Connect();
                 await socket.SubscribeQuote(symbol);
-                await socket.SubscribeChart(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
-                await socket.SubscribeTimeSale(symbol, TDAmeritradeClient.IsFutureSymbol(symbol) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
+                await socket.SubscribeChart(symbol, TDChartSubs.CHART_EQUITY);
+                await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_EQUITY);
+                await socket.SubscribeBook(symbol, TDBookOptions.LISTED_BOOK);
+                await socket.SubscribeBook(symbol, TDBookOptions.NASDAQ_BOOK);
                 await Task.Delay(1000);
+                Assert.IsTrue(socket.IsConnected);
+                await socket.Disconnect();
+            }
+        }
+
+        [Test]
+        public async Task TestRealtimeStreamFuture()
+        {
+            await client.SignIn();
+            using (var socket = new TDAmeritradeStreamClient(client))
+            {
+                var symbol = "/NQ";
+                socket.OnHeartbeatSignal += o => { };
+                socket.OnQuoteSignal += o => { };
+                socket.OnTimeSaleSignal += o => { };
+                socket.OnChartSignal += o => { };
+                socket.OnBookSignal += o => { };
+                await socket.Connect();
+                await socket.SubscribeQuote(symbol);
+                await socket.SubscribeChart(symbol, TDChartSubs.CHART_FUTURES);
+                await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_FUTURES);
+                await Task.Delay(2000);
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }
@@ -101,22 +153,22 @@ namespace TDAmeritrade.Tests
         [Test]
         public void TestParser()
         {
-            var reader = new TDAmeritradeJsonParser();
+            var reader = new TDStreamJsonProcessor();
 
             int counter = 4;
-            reader.OnHeartbeat += (t) =>
+            reader.OnHeartbeatSignal += (t) =>
             {
                 counter--;
             };
-            reader.OnQuote += (quote) =>
+            reader.OnQuoteSignal += (quote) =>
             {
                 counter--;
             };
-            reader.OnTimeSale += (sale) =>
+            reader.OnTimeSaleSignal += (sale) =>
             {
                 counter--;
             };
-            reader.OnChart += (sale) =>
+            reader.OnChartSignal += (sale) =>
             {
                 counter--;
             };
