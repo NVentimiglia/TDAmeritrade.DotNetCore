@@ -1,179 +1,230 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using TDAmeritrade;
 
 namespace TDConsole
 {
-
-    class Program
+    class Program : IDisposable
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Starting Client");
-            Console.WriteLine("...");
+            using (var instance = new Program())
+            {
+                await instance.Run();
+            }
+        }
 
-            //var serviceCollection = new ServiceCollection();
-            //serviceCollection.AddDataProtection();
-            //var services = serviceCollection.BuildServiceProvider();
-            //var protection = services.GetService<IDataProtectionProvider>();
-            //var cache = new TDProtectedCache(protection);
-            //var client = new TDAmeritradeClient(cache);
+        TDUnprotectedCache cache;
+        TDAmeritradeClient client;
+        FileStream stream;
+        bool terminated;
 
-            var cache = new TDUnprotectedCache();
-            var client = new TDAmeritradeClient(cache);
+        public Program()
+        {
+            cache = new TDUnprotectedCache();
+            client = new TDAmeritradeClient(cache);
+        }
 
-            Console.WriteLine("1 to sign in fresh, 2 to refresh signin, 3 streaming test, 4 streaming to file");
+        public void Dispose()
+        {
+            terminated = true;
+            if (stream != null)
+            {
+                stream.Dispose();
+            }
+        }
+
+        public async Task Run()
+        {
+            Console.WriteLine("Choose a flow");
+            Console.WriteLine("1) SignIn first time");
+            Console.WriteLine("2) Sign in refresh");
+            Console.WriteLine("3) Record Stream data");
+
             var option = Console.ReadKey();
+            Console.WriteLine();
             switch (option.Key)
             {
+                case ConsoleKey.NumPad1:
                 case ConsoleKey.D1:
-                    Console.WriteLine("Paste consumer key :");
-                    var key = Console.ReadLine();
-                    Console.WriteLine("Opening Browser. Please sign in.");
-                    client.RequestAccessToken(key);
-
-                    Console.WriteLine("Paste the code. This is in the browser url bar 'code={code}'.");
-                    var code = Console.ReadLine();
-                    await client.PostAccessToken(key, code);
-                    Console.WriteLine($"Authenticated {client.IsSignedIn}.");
-                    Console.ReadLine();
+                    await SignIn();
                     break;
+                case ConsoleKey.NumPad2:
                 case ConsoleKey.D2:
-                    await client.PostRefreshToken();
-                    Console.WriteLine($"Authenticated {client.IsSignedIn}.");
-                    Console.ReadLine();
+                    await SignInRefresh();
                     break;
+                case ConsoleKey.NumPad3:
                 case ConsoleKey.D3:
-                    await client.PostRefreshToken();
-                    Console.WriteLine($"Authenticated {client.IsSignedIn}.");
-                    using (var socket = new TDAmeritradeStreamClient(client))
-                    {
-                        socket.OnMessage += (m) =>
-                        {
-                            Console.WriteLine(m);
-                        };
-                        await socket.Connect();
-                        Console.WriteLine("Type symbol(s)");
-                        var symbols2 = Console.ReadLine();
-                        await socket.SubscribeQuote(symbols2);
-                        await socket.SubscribeChart(symbols2, TDAmeritradeClient.IsFutureSymbol(symbols2) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
-                        await socket.SubscribeTimeSale(symbols2, TDAmeritradeClient.IsFutureSymbol(symbols2) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
-                        Console.WriteLine("Type any key to quit");
-                        Console.ReadLine();
-                        await socket.Disconnect();
-                    }
+                    await RecordStream();
                     break;
-                case ConsoleKey.D4:
-                    await client.PostRefreshToken();
-                    Console.WriteLine($"Authenticated {client.IsSignedIn}.");
+            }
 
-                    Console.WriteLine("Type symbol(s)");
-                    var symbols = Console.ReadLine();
+            Console.WriteLine("Type any key to quit");
+            Console.ReadLine();
+        }
 
-                    var path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
 
-                    var ch_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ch.dat";
-                    var ts_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.ts.dat";
-                    var qu_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.qu.dat";
-                    var al_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";
+        public async Task SignIn()
+        {
+            Console.WriteLine("Paste consumer key : (https://developer.tdameritrade.com/user/me/apps)");
+            var consumerKey = Console.ReadLine();
+            Console.WriteLine("Opening Browser. Please sign in.");
+            var uri = client.GetSignInUrl(consumerKey);
+            OpenBrowser(uri);
+            Console.WriteLine("When complete,please input the code (code={code}) query paramater. Located inside your browser url bar.");
+            var code = Console.ReadLine();
+            await client.SignIn(consumerKey, code);
+            Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
+        }
 
-                    if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
 
-                    if (!File.Exists(path)) { using (var s = File.Create(path)) { } }
-                    if (!File.Exists(ch_path)) { using (var s = File.Create(ch_path)) { } }
-                    if (!File.Exists(ts_path)) { using (var s = File.Create(ts_path)) { } }
-                    if (!File.Exists(qu_path)) { using (var s = File.Create(qu_path)) { } }
-                    if (!File.Exists(al_path)) { using (var s = File.Create(al_path)) { } }
+        public async Task SignInRefresh()
+        {
+            await client.SignIn();
+            Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
+        }
 
-                    var ts_formatter = new BinaryFormatter();
-                    var ch_formatter = new BinaryFormatter();
-                    var qu_formatter = new BinaryFormatter();
-                    var al_formatter = new BinaryFormatter();
+        public async Task RecordStream()
+        {
+            await client.SignIn();
+            Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
 
-                    var ts_fs = new FileStream(ts_path, FileMode.Append);
-                    var ch_fs = new FileStream(ch_path, FileMode.Append);
-                    var qu_fs = new FileStream(qu_path, FileMode.Append);
-                    var al_fs = new FileStream(al_path, FileMode.Append);
+            Console.WriteLine("Input Symbol :");
+            var symbols = Console.ReadLine();
 
-                    using (var socket = new TDAmeritradeStreamClient(client))
+            Console.WriteLine("Input QOS : 0-5 (500, 750, 1000, 1500, 3000, 5000)ms");
+            var qos = Console.ReadLine();
+            int qosInt = 0;
+            int.TryParse(qos, out qosInt);
+
+
+            if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
+
+            var txt_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
+            var dat_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.dat";
+
+            if (!File.Exists(txt_path)) { using (var s = File.Create(txt_path)) { } }
+            if (!File.Exists(dat_path)) { using (var s = File.Create(dat_path)) { } }
+
+            BinaryFormatter formater = new BinaryFormatter();
+            stream = new FileStream(dat_path, FileMode.Append);
+
+            using (var socket = new TDAmeritradeStreamClient(client))
+            {
+                async void Retry()
+                {
+                    if (!terminated)
                     {
-                        socket.OnMessage += (m) =>
-                        {
-                            lock (path)
-                            {
-                                using (var s = File.AppendText(path))
-                                {
-                                    s.WriteLine(m);
-                                }
-                                Console.WriteLine(m);
-                            }
-                        };
-
-                        socket.OnTimeSale += o =>
-                        {
-                            lock (ts_path)
-                            {
-                                ts_formatter.Serialize(ts_fs, o);
-                            }
-                            lock (al_path)
-                            {
-                                ts_formatter.Serialize(al_fs, o);
-                            }
-
-                        };
-                        socket.OnChart += o =>
-                        {
-                            lock (ch_path)
-                            {
-                                ch_formatter.Serialize(ch_fs, o);
-                            }
-                            lock (al_path)
-                            {
-                                ts_formatter.Serialize(al_fs, o);
-                            }
-                        };
-                        socket.OnQuote += o =>
-                        {
-                            lock (qu_path)
-                            {
-                                qu_formatter.Serialize(qu_fs, o);
-                            }
-                            lock (al_path)
-                            {
-                                ts_formatter.Serialize(al_fs, o);
-                            }
-                        };
-
-                        await socket.Connect();
-                        await socket.SubscribeQuote(symbols);
-                        await socket.SubscribeChart(symbols, TDAmeritradeClient.IsFutureSymbol(symbols) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
-                        await socket.SubscribeTimeSale(symbols, TDAmeritradeClient.IsFutureSymbol(symbols) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
-                        Console.WriteLine("Type any key to quit");
-                        Console.ReadLine();
-                        await socket.Disconnect();
-                        ts_fs.Dispose();
-                        ch_fs.Dispose();
-                        qu_fs.Dispose();
-                        al_fs.Dispose();
-
-                        //var list = new List<TDTimeSaleSignal>();
-                        //var bFormatter = new BinaryFormatter();
-                        //using (var temp = new FileStream(ts_path, FileMode.Open))
-                        //{
-                        //    while (temp.Position != temp.Length)
-                        //    {
-                        //        var t = bFormatter.Deserialize(temp);
-                        //        list.Add((TDTimeSaleSignal)t);
-                        //    }
-                        //}
-
+                        Console.WriteLine("Retrying...");
+                        await Task.Delay(1000);
+                        Connect();
                     }
-                    break;
-                default:
-                    return;
+                }
+
+                async void Connect()
+                {
+                    Console.WriteLine("Connecting...");
+                    try
+                    {
+                        await socket.Connect();
+
+                        if (socket.IsConnected)
+                        {
+                            await socket.RequestQOS((TDQOSLevels)qosInt);
+                            await socket.SubscribeQuote(symbols);
+                            await socket.SubscribeChart(symbols, IsFutureSymbol(symbols) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
+                            await socket.SubscribeTimeSale(symbols, IsFutureSymbol(symbols) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
+                            await socket.SubscribeBook(symbols, TDBookOptions.LISTED_BOOK);
+                            await socket.SubscribeBook(symbols, TDBookOptions.NASDAQ_BOOK);
+                        }
+                        else if (!terminated)
+                        {
+                            Retry();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error " + ex);
+                        Retry();
+                    }
+                }
+
+                socket.OnJsonSignal += (m) =>
+                {
+                    lock (txt_path)
+                    {
+                        Console.WriteLine(m);
+                        using (var s = File.AppendText(txt_path))
+                        {
+                            s.WriteLine(m);
+                        }
+                        formater.Serialize(stream, m);
+                    }
+                };
+
+                socket.OnConnect += (s) =>
+                {
+                    if (!s)
+                    {
+                        Connect();
+                    }
+                };
+
+                Connect();
+                Console.WriteLine("Type any key to quit");
+                Console.ReadLine();
+                terminated = true;
+                await socket.Disconnect();
+
+                //var list = new List<TDTimeSaleSignal>();
+                //var bFormatter = new BinaryFormatter();
+                //using (var temp = new FileStream(ts_path, FileMode.Open))
+                //{
+                //    while (temp.Position != temp.Length)
+                //    {
+                //        var t = bFormatter.Deserialize(temp);
+                //        list.Add((TDTimeSaleSignal)t);
+                //    }
+                //}
+            }
+        }
+
+        bool IsFutureSymbol(string s)
+        {
+            return s.StartsWith("/");
+        }
+
+        void OpenBrowser(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
     }

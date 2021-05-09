@@ -235,6 +235,22 @@ namespace TDAmeritrade
     public enum TDQOSLevels
     {
         /// <summary>
+        /// 500ms
+        /// </summary>
+        EXPRESS,
+        /// <summary>
+        /// 750ms
+        /// </summary>
+        REALTIME,
+        /// <summary>
+        /// 1000ms
+        /// </summary>
+        FAST,
+        /// <summary>
+        /// 1500ms
+        /// </summary>
+        MODERATE,
+        /// <summary>
         /// 5000ms
         /// </summary>
         DELAYED,
@@ -242,22 +258,6 @@ namespace TDAmeritrade
         /// 3000ms
         /// </summary>
         SLOW,
-        /// <summary>
-        /// 1500ms
-        /// </summary>
-        MODERATE,
-        /// <summary>
-        /// 1000ms
-        /// </summary>
-        FAST,
-        /// <summary>
-        /// 750ms
-        /// </summary>
-        REALTIME,
-        /// <summary>
-        /// 500ms
-        /// </summary>
-        EXPRESS,
     }
 
     [Serializable]

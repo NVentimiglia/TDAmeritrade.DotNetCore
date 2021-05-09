@@ -112,14 +112,13 @@ namespace TDAmeritrade
         {
             if (_socket != null)
             {
-                Console.WriteLine($"TDAmeritradeStreamClient Disconnect");
                 if (_socket.State == WebSocketState.Open)
                 {
                     await LogOut();
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
                 }
                 _socket.Dispose();
-                _socket = null;
+                _socket = null;                
             }
         }
 
@@ -388,7 +387,6 @@ namespace TDAmeritrade
 
         private Task LogOut()
         {
-            Console.WriteLine($"TDAmeritradeStreamClient LogOut");
             var request = new TDRealtimeRequestContainer
             {
                 requests = new TDRealtimeRequest[]

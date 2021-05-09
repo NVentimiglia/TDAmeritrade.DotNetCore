@@ -122,7 +122,7 @@ namespace TDAmeritrade.Tests
                 await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_EQUITY);
                 await socket.SubscribeBook(symbol, TDBookOptions.LISTED_BOOK);
                 await socket.SubscribeBook(symbol, TDBookOptions.NASDAQ_BOOK);
-                await Task.Delay(1000);
+                await Task.Delay(2000);
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }
