@@ -10,8 +10,10 @@ Helps developers integrate TD Ameritrade API into custom trading solutions.
 - Quotes
 - Historical Charts
 - Option Chain
+- Streaming QOS
 - Streaming Charts
 - Streaming Level 1 Quotes
+- Streaming Level 2 Quotes
 - Streaming Time & Sales
 
 ### Sample
@@ -21,13 +23,19 @@ Helps developers integrate TD Ameritrade API into custom trading solutions.
 var cache = TDProtectedCache();
 var client = new TDAmeritradeClient(cache);
 
-// Confirm the credentials
-client.PostRefreshToken();
+// Sign in first time
+var url = client.GetSignInUrl("consumerkey");
+client.SignIn("consumerkey", "codefromloginurl");
+Assert.IsTrue(client.IsSignedIn);
+
+// Sign in second time
+client.SignIn();
 Assert.IsTrue(client.IsSignedIn);
 
 //Use!
-var data = await client.GetQuote<TDIndexQuote>("SPY");
-var data = await client.GetQuote<TDOptionQuote>("SPY_231215C500");
+var data = await client.GetQuote_Equity("SPY");
+var data = await client.GetQuote_Future("/NQ");
+var data = await client.GetQuote_Option("SPY_231215C500");
 var data = await client.GetPriceHistory(new TDPriceHistoryRequest
 {
     symbol = "SPY",
@@ -43,14 +51,16 @@ var data = await client.GetOptionsChain(new TDOptionChainRequest
 var data = await client.GetPrincipals(TDPrincipalsFields.preferences);
 using (var socket = new TDAmeritradeStreamClient(client))
 {
-    socket.OnHeartbeat += o => { };
-    socket.OnQuote += o => { };
-    socket.OnTimeSaleEquity += o => { };
-    socket.OnChart += o => { };
+    socket.OnHeartbeatSignal += o => { };
+    socket.OnQuoteSignal += o => { };
+    socket.OnTimeSaleSignal += o => { };
+    socket.OnChartSignal += o => { };
+    socket.OnBookSignal += o => { };
     await socket.Connect();
-    await socket.SubscribeQuote("SPY");
-    await socket.SubscribeChart("SPY", TDChartSubs.CHART_EQUITY);
-    await socket.SubscribeTimeSale("SPY", TDTimeSaleServices.TIMESALE_EQUITY);
+    await socket.SubscribeQuote("QQQ");
+    await socket.SubscribeChart("QQQ", TDChartSubs.CHART_EQUITY);
+    await socket.SubscribeTimeSale("QQQ", TDTimeSaleServices.TIMESALE_EQUITY);
+    await socket.SubscribeBook("QQQ", TDBookOptions.NASDAQ_BOOK);
 }
 ```
 ### Console/UnitTest Initialization
