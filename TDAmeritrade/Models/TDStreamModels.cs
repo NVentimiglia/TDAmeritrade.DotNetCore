@@ -2,6 +2,21 @@
 
 namespace TDAmeritrade
 {
+    /// <summary>
+    /// common interface for all realtime stream signals
+    /// </summary>
+    public interface ISignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>    
+        public long timestamp { get; set; }
+        /// <summary>
+        /// Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+    }
+
     [Serializable]
     public struct TDHeartbeatSignal
     {
@@ -23,7 +38,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDBookSignal
+    public struct TDBookSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -49,7 +64,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDQuoteSignal
+    public struct TDQuoteSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -137,7 +152,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDTimeSaleSignal
+    public struct TDTimeSaleSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -172,7 +187,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDChartSignal
+    public struct TDChartSignal : ISignal
     {
         /// <summary>
         /// UNIX
