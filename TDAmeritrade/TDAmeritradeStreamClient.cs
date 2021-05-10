@@ -25,6 +25,7 @@ namespace TDAmeritrade
         JsonSerializerSettings _settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
         int _counter;
         bool _connected;
+        private SemaphoreSlim _slim = new SemaphoreSlim(1);
 
         /// <summary>
         /// Is stream connected
@@ -127,7 +128,10 @@ namespace TDAmeritrade
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
                     OnConnect(IsConnected);
                 }
-                _socket.Dispose();
+                if(_socket != null)
+                {
+                    _socket.Dispose();
+                }
                 _socket = null;
             }
             IsConnected = false;
@@ -298,11 +302,24 @@ namespace TDAmeritrade
         /// Sends a request to the server
         public async Task SendToServer(string data)
         {
-            if (_socket != null)
+            await _slim.WaitAsync();
+            try
             {
-                var encoded = Encoding.UTF8.GetBytes(data);
-                var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
-                await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                if (_socket != null)
+                {
+                    var encoded = Encoding.UTF8.GetBytes(data);
+                    var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+                    await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+                Cleanup();
+            }
+            finally
+            {
+                _slim.Release();
             }
         }
 
@@ -437,9 +454,15 @@ namespace TDAmeritrade
                 if (_socket.State == WebSocketState.Open)
                 {
                     await LogOut();
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
+                    if(_socket != null)
+                    {
+                        await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "NormalClosure", CancellationToken.None);
+                    }
                 }
-                _socket.Dispose();
+                if(_socket!= null)
+                {
+                    _socket.Dispose();
+                }
                 _socket = null;
             }
             IsConnected = false;
