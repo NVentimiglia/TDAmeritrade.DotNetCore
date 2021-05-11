@@ -50,7 +50,7 @@ namespace TDAmeritrade
                 }
                 else if (service == "LISTED_BOOK" || service == "NASDAQ_BOOK" || service == "OPTIONS_BOOK")
                 {
-                    ParseBook(tmstamp, content);
+                    ParseBook(tmstamp, content, service);
                 }
                 else if (service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
                 {
@@ -65,10 +65,11 @@ namespace TDAmeritrade
             OnHeartbeatSignal(model);
         }
 
-        void ParseBook(long tmstamp, JObject content)
+        void ParseBook(long tmstamp, JObject content, string service)
         {
             var model = new TDBookSignal();
             model.timestamp = tmstamp;
+            model.id = Enum.Parse<TDBookOptions>(service);
             foreach (var item in content)
             {
                 switch (item.Key)
@@ -76,14 +77,14 @@ namespace TDAmeritrade
                     case "key":
                         model.symbol = item.Value.Value<string>();
                         break;
-                    case "1":
-                        model.booktime = item.Value.Value<long>();
-                        break;
+                    //case "1":
+                    //    model.booktime = item.Value.Value<long>();
+                    //    break;
                     case "2":
-                        model.bids = item.Value.Value<double>();
+                        model.bids = (item.Value as JArray).ToObject<TDBookLevel[]>();
                         break;
                     case "3":
-                        model.asks = item.Value.Value<double>();
+                        model.asks = (item.Value as JArray).ToObject<TDBookLevel[]>();
                         break;
                 }
             }

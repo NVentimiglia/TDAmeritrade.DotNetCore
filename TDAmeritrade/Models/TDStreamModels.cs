@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace TDAmeritrade
 {
@@ -37,6 +38,7 @@ namespace TDAmeritrade
         FUTURES_OPTIONS_BOOK,
     }
 
+
     [Serializable]
     public struct TDBookSignal : ISignal
     {
@@ -49,18 +51,32 @@ namespace TDAmeritrade
         /// </summary>
         public string symbol { get; set; }
         /// <summary>
-        /// 1
+        /// Book source
         /// </summary>
-        public long booktime { get; set; }
+        public TDBookOptions id { get; set; }
         /// <summary>
-        /// 2
+        /// 2 bids
         /// </summary>
-        public double bids { get; set; }
+        public TDBookLevel[] bids { get; set; }
         /// <summary>
-        /// 3
+        /// 3 asks
         /// </summary>
-        public double asks { get; set; }
+        public TDBookLevel[] asks { get; set; }
+    }
 
+    [Serializable]
+    public struct TDBookLevel
+    {
+        /// <summary>
+        /// 0 this price level
+        /// </summary>
+        [JsonProperty("0")]
+        public double price { get; set; }
+        /// <summary>
+        /// 2 total volume at this level
+        /// </summary>
+        [JsonProperty("1")]
+        public double quantity { get; set; }
     }
 
     [Serializable]

@@ -106,13 +106,8 @@ namespace TDConsole
             if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
 
             var txt_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
-            var dat_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.dat";
 
             if (!File.Exists(txt_path)) { using (var s = File.Create(txt_path)) { } }
-            if (!File.Exists(dat_path)) { using (var s = File.Create(dat_path)) { } }
-
-            BinaryFormatter formater = new BinaryFormatter();
-            stream = new FileStream(dat_path, FileMode.Append);
 
             using (var socket = new TDAmeritradeStreamClient(client))
             {
@@ -164,9 +159,6 @@ namespace TDConsole
                         {
                             s.WriteLine(m);
                         }
-#pragma warning disable SYSLIB0011 // Type or member is obsolete
-                        formater.Serialize(stream, m);
-#pragma warning restore SYSLIB0011 // Type or member is obsolete
                     }
                 };
 
