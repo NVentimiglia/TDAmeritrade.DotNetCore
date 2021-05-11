@@ -29,32 +29,36 @@ namespace TDAmeritrade
             }
             else if (job.ContainsKey("data"))
             {
-                var service = job["data"].First.First.First.Value<string>();
-                var content = job["data"].First.Last.First.First as JObject;
-                var tmstamp = job["data"].First["timestamp"].Value<long>();
+                var data = job["data"] as JArray;
+                foreach (var item in data)
+                {
+                    var service = item.First.First.Value<string>();
+                    var content = item.Last.First.First as JObject;
+                    var tmstamp = item["timestamp"].Value<long>();
 
-                if (content == null)
-                    return;
+                    if (content == null)
+                        return;
 
-                if (service == "QUOTE")
-                {
-                    ParseQuote(tmstamp, content);
-                }
-                else if (service == "CHART_FUTURES")
-                {
-                    ParseChartFutures(tmstamp, content);
-                }
-                else if (service == "CHART_EQUITY")
-                {
-                    ParseChartEquity(tmstamp, content);
-                }
-                else if (service == "LISTED_BOOK" || service == "NASDAQ_BOOK" || service == "OPTIONS_BOOK")
-                {
-                    ParseBook(tmstamp, content, service);
-                }
-                else if (service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
-                {
-                    ParseTimeSaleEquity(tmstamp, content);
+                    if (service == "QUOTE")
+                    {
+                        ParseQuote(tmstamp, content);
+                    }
+                    else if (service == "CHART_FUTURES")
+                    {
+                        ParseChartFutures(tmstamp, content);
+                    }
+                    else if (service == "CHART_EQUITY")
+                    {
+                        ParseChartEquity(tmstamp, content);
+                    }
+                    else if (service == "LISTED_BOOK" || service == "NASDAQ_BOOK" || service == "OPTIONS_BOOK")
+                    {
+                        ParseBook(tmstamp, content, service);
+                    }
+                    else if (service == "TIMESALE_EQUITY" || service == "TIMESALE_FUTURES" || service == "TIMESALE_FOREX" || service == "TIMESALE_OPTIONS")
+                    {
+                        ParseTimeSaleEquity(tmstamp, content);
+                    }
                 }
             }
         }
