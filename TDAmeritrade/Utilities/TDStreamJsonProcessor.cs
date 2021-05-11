@@ -69,7 +69,7 @@ namespace TDAmeritrade
         {
             var model = new TDBookSignal();
             model.timestamp = tmstamp;
-            model.id = Enum.Parse<TDBookOptions>(service);
+            model.id = (TDBookOptions)Enum.Parse(typeof(TDBookOptions), service);
             foreach (var item in content)
             {
                 switch (item.Key)
