@@ -3,6 +3,7 @@ using System;
 
 namespace TDAmeritrade
 {
+
     /// <summary>
     /// Utility for deserializing stream messages
     /// </summary>

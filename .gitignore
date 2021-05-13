@@ -5,3 +5,4 @@
 **/.vs/**
 TDAmeritrade.Web/TDAmeritradeKey
 TDAmeritrade.Console/Records/
+*.meta
