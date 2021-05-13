@@ -65,7 +65,7 @@ namespace TDConsole
                     break;
                 case ConsoleKey.NumPad4:
                 case ConsoleKey.D4:
-                    await BinStream();
+                    BinStream();
                     break;
             }
 
@@ -94,34 +94,56 @@ namespace TDConsole
             Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
         }
 
-        public async Task BinStream()
+        public void BinStream()
         {
-            var txt_path = $"../../../Records/Copy.txt";
-            var bin_path = $"../../../Records/Copy.bin";
+            var files = Directory.GetFiles($"F:/Records/");
 
-            if (!File.Exists(bin_path)) { using (var s = File.Create(bin_path)) { } }
-
-            var jsonParser = new TDStreamJsonProcessor();
-            var processor = new TDStreamBinFileProcessor();
-
-            using (var writer = new StreamWriter(bin_path))
+            foreach (var txt_path in files)
             {
-                jsonParser.OnBookSignal += (o) => writer.Write(processor.Serialize(o));
-                jsonParser.OnChartSignal += (o) => writer.Write(processor.Serialize(o));
-                jsonParser.OnHeartbeatSignal += (o) => writer.Write(processor.Serialize(o));
-                jsonParser.OnQuoteSignal += (o) => writer.Write(processor.Serialize(o));
-                jsonParser.OnTimeSaleSignal += (o) => writer.Write(processor.Serialize(o));
+                var bin_path = txt_path.Replace("txt", "bin");
 
-                using (var file = new StreamReader(txt_path))
+
+                if (!File.Exists(bin_path)) { using (var s = File.Create(bin_path)) { } }
+
+                var jsonParser = new TDStreamJsonProcessor();
+                var processor = new TDStreamBinFileProcessor();
+                int writes = 0;
+                int reads = 0;
+
+                using (var writer = new FileStream(bin_path, FileMode.Open))
                 {
-                    var _file = new StreamReader(txt_path);
-                    string json = null;
-                    while ((json = _file.ReadLine()) != null)
+                    jsonParser.OnBookSignal += (o) => writer.Write(processor.Serialize(o));
+                    jsonParser.OnChartSignal += (o) => writer.Write(processor.Serialize(o));
+                    jsonParser.OnHeartbeatSignal += (o) => writer.Write(processor.Serialize(o));
+                    jsonParser.OnQuoteSignal += (o) => writer.Write(processor.Serialize(o));
+                    jsonParser.OnTimeSaleSignal += (o) => writer.Write(processor.Serialize(o));
+
+                    jsonParser.OnBookSignal += (o) => writes++;
+                    jsonParser.OnChartSignal += (o) => writes++;
+                    jsonParser.OnHeartbeatSignal += (o) => writes++;
+                    jsonParser.OnQuoteSignal += (o) => writes++;
+                    jsonParser.OnTimeSaleSignal += (o) => writes++;
+
+                    using (var file = new StreamReader(txt_path))
                     {
-                        jsonParser.Parse(json);
+                        var _file = new StreamReader(txt_path);
+                        string json = null;
+                        while ((json = _file.ReadLine()) != null)
+                        {
+                            jsonParser.Parse(json);
+                        }
                     }
                 }
+
+                processor.OnBookSignal += (o) => reads++;
+                processor.OnChartSignal += (o) => reads++;
+                processor.OnHeartbeatSignal += (o) => reads++;
+                processor.OnQuoteSignal += (o) => reads++;
+                processor.OnTimeSaleSignal += (o) => reads++;
+                processor.ReadFile(bin_path);
+                var a = writes;
             }
+            Console.WriteLine("Done");
         }
 
         public async Task RecordStream()
@@ -132,16 +154,23 @@ namespace TDConsole
             Console.WriteLine("Input Symbol :");
             var symbols = Console.ReadLine();
 
+            Console.WriteLine("Input Save Directory :");
+            var path = Console.ReadLine();
+            if(string.IsNullOrEmpty(path))
+            {
+                path = "../../../Records";
+            }
+
+            Console.WriteLine("Save Format 0) All 1) Json 2) Binary:");
+            int format = Console.ReadKey().KeyChar;
+
             Console.WriteLine("Input QOS : 0-5 (500, 750, 1000, 1500, 3000, 5000)ms");
             var qos = Console.ReadLine();
             int qosInt = 0;
             int.TryParse(qos, out qosInt);
 
-
-            if (!Directory.Exists("../../../Records/")) { Directory.CreateDirectory("../../../Records/"); }
-
-            var txt_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
-            var bin_path = $"../../../Records/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";
+            var txt_path = $"{path}{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
+            var bin_path = $"{path}/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";
 
             if (!File.Exists(txt_path)) { using (var s = File.Create(txt_path)) { } }
             if (!File.Exists(bin_path)) { using (var s = File.Create(bin_path)) { } }
@@ -190,26 +219,32 @@ namespace TDConsole
 
                 socket.OnJsonSignal += (m) =>
                 {
-                    lock (txt_path)
+                    if (format == '0' || format == '1')
                     {
-                        Console.WriteLine(m);
-                        using (var s = File.AppendText(txt_path))
+                        lock (txt_path)
                         {
-                            s.WriteLine(m);
+                            Console.WriteLine(m);
+                            using (var s = File.AppendText(txt_path))
+                            {
+                                s.WriteLine(m);
+                            }
                         }
                     }
                 };
 
                 Action<byte[]> writeBin = (buff) =>
-               {
-                   lock (bin_path)
-                   {
-                       using (var s = File.AppendText(bin_path))
-                       {
-                           s.Write(buff);
-                       }
-                   }
-               };
+                {
+                    if (format == '0' || format == '2')
+                    {
+                        lock (bin_path)
+                        {
+                            using (var writer = new FileStream(bin_path, FileMode.Open))
+                            {
+                                writer.Write(buff);
+                            }
+                        }
+                    }
+                };
 
                 socket.OnBookSignal += o => writeBin(processor.Serialize(o));
                 socket.OnChartSignal += o => writeBin(processor.Serialize(o));
@@ -230,17 +265,6 @@ namespace TDConsole
                 Console.ReadLine();
                 terminated = true;
                 await socket.Disconnect();
-
-                //var list = new List<TDTimeSaleSignal>();
-                //var bFormatter = new BinaryFormatter();
-                //using (var temp = new FileStream(ts_path, FileMode.Open))
-                //{
-                //    while (temp.Position != temp.Length)
-                //    {
-                //        var t = bFormatter.Deserialize(temp);
-                //        list.Add((TDTimeSaleSignal)t);
-                //    }
-                //}
             }
         }
 

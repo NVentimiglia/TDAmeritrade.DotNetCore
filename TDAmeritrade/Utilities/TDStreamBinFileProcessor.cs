@@ -1,4 +1,4 @@
-﻿using FlatSharp;
+﻿using BinaryPack;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +11,16 @@ namespace TDAmeritrade
     /// </summary>
     public class TDStreamBinFileProcessor
     {
+        private enum SignalTypes
+        {
+            NA,
+            HEARTBEAT,
+            CHART,
+            QUOTE,
+            TIMESALE,
+            BOOK
+        }
+
         /// <summary> Server Sent Events </summary>
         public event Action<TDHeartbeatSignal> OnHeartbeatSignal = delegate { };
         /// <summary> Server Sent Events </summary>
@@ -22,18 +32,6 @@ namespace TDAmeritrade
         /// <summary> Server Sent Events </summary>
         public event Action<TDBookSignal> OnBookSignal = delegate { };
 
-        private Dictionary<SignalTypes, int> _sizes;
-        private byte[] _buffer = new byte[1024];
-
-        public TDStreamBinFileProcessor()
-        {
-            _sizes = new Dictionary<SignalTypes, int>();
-            _sizes.Add(SignalTypes.HEARTBEAT, FlatBufferSerializer.Default.GetMaxSize(new TDHeartbeatSignal()));
-            _sizes.Add(SignalTypes.CHART, FlatBufferSerializer.Default.GetMaxSize(new TDChartSignal()));
-            _sizes.Add(SignalTypes.QUOTE, FlatBufferSerializer.Default.GetMaxSize(new TDQuoteSignal()));
-            _sizes.Add(SignalTypes.TIMESALE, FlatBufferSerializer.Default.GetMaxSize(new TDTimeSaleSignal()));
-            _sizes.Add(SignalTypes.BOOK, FlatBufferSerializer.Default.GetMaxSize(new TDHeartbeatSignal()));
-        }
 
         public void ReadFile(string path)
         {
@@ -54,24 +52,19 @@ namespace TDAmeritrade
                         switch (header)
                         {
                             case SignalTypes.HEARTBEAT:
-                                stream.Read(_buffer, (int)stream.Position, _sizes[SignalTypes.HEARTBEAT]);
-                                OnHeartbeatSignal(FlatBufferSerializer.Default.Parse<TDHeartbeatSignal>(_buffer));
+                                OnHeartbeatSignal(Deserialize<TDHeartbeatSignal>(stream));
                                 break;
                             case SignalTypes.BOOK:
-                                stream.Read(_buffer, (int)stream.Position, _sizes[SignalTypes.BOOK]);
-                                OnBookSignal(FlatBufferSerializer.Default.Parse<TDBookSignal>(_buffer));
+                                OnBookSignal(Deserialize<TDBookSignal>(stream));
                                 break;
                             case SignalTypes.QUOTE:
-                                stream.Read(_buffer, (int)stream.Position, _sizes[SignalTypes.QUOTE]);
-                                OnQuoteSignal(FlatBufferSerializer.Default.Parse<TDQuoteSignal>(_buffer));
+                                OnQuoteSignal(Deserialize<TDQuoteSignal>(stream));
                                 break;
                             case SignalTypes.TIMESALE:
-                                stream.Read(_buffer, (int)stream.Position, _sizes[SignalTypes.TIMESALE]);
-                                OnTimeSaleSignal(FlatBufferSerializer.Default.Parse<TDTimeSaleSignal>(_buffer));
+                                OnTimeSaleSignal(Deserialize<TDTimeSaleSignal>(stream));
                                 break;
                             case SignalTypes.CHART:
-                                stream.Read(_buffer, (int)stream.Position, _sizes[SignalTypes.CHART]);
-                                OnChartSignal(FlatBufferSerializer.Default.Parse<TDChartSignal>(_buffer));
+                                OnChartSignal(Deserialize<TDChartSignal>(stream));
                                 break;
                             default:
                                 break;
@@ -81,13 +74,75 @@ namespace TDAmeritrade
             }
         }
 
-        public byte[] Serialize<TModel>(TModel model) where TModel : class
+        public TModel Deserialize<TModel>(byte[] stream) where TModel : new()
         {
+            var length = ReadInt(stream, 0);
+            var payload = new byte[length];
+            Buffer.BlockCopy(stream, sizeof(int), payload, 0, length);
+            return BinaryConverter.Deserialize<TModel>(payload);
+        }
 
-            int maxBytesNeeded = FlatBufferSerializer.Default.GetMaxSize(model);
-            byte[] buffer = new byte[maxBytesNeeded];
-            int bytesWritten = FlatBufferSerializer.Default.Serialize(model, buffer);
-            return buffer;
+        public TModel Deserialize<TModel>(Stream stream) where TModel : new()
+        {
+            var header = new byte[sizeof(int)];
+            stream.Read(header, 0, sizeof(int));
+            var length = ReadInt(header, 0);
+            var payload = new byte[length];
+            stream.Read(payload, 0, length);
+            return BinaryConverter.Deserialize<TModel>(payload);
+        }
+
+
+        public byte[] Serialize<TModel>(TModel model) where TModel : new()
+        {
+            // header
+            // (byte) payload type
+            // (int)  payload length
+            //
+            // payload
+            const int headsize = sizeof(int) + sizeof(byte);
+            byte[] buffer = BinaryConverter.Serialize(model);
+            byte[] header = new byte[buffer.Length + headsize];
+            Buffer.BlockCopy(buffer, 0, header, headsize, buffer.Length);
+            WriteInt(buffer.Length, header, 1);
+            if (model is TDHeartbeatSignal)
+            {
+                header[0] = (byte)SignalTypes.HEARTBEAT;
+            }
+            else if (model is TDBookSignal)
+            {
+                header[0] = (byte)SignalTypes.BOOK;
+            }
+            else if (model is TDTimeSaleSignal)
+            {
+                header[0] = (byte)SignalTypes.TIMESALE;
+            }
+            else if (model is TDQuoteSignal)
+            {
+                header[0] = (byte)SignalTypes.QUOTE;
+            }
+            else if (model is TDChartSignal)
+            {
+                header[0] = (byte)SignalTypes.CHART;
+            }
+            return header;
+        }
+
+        unsafe void WriteInt(int value, byte[] buffer, int offset)
+        {
+            fixed (byte* ptr = buffer)
+            {
+                *(int*)(ptr + offset) = value;
+            }
+        }
+        unsafe int ReadInt(byte[] buffer, int offset)
+        {
+            int value;
+            fixed (byte* ptr = buffer)
+            {
+                value = *(int*)(ptr + offset);
+            }
+            return value;
         }
     }
 }
