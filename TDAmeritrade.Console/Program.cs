@@ -96,14 +96,18 @@ namespace TDConsole
 
         public void BinStream()
         {
+            Console.WriteLine("Copy...");
+
             var files = Directory.GetFiles($"F:/Records/");
 
             foreach (var txt_path in files)
             {
+                Console.WriteLine("Copy... "+ txt_path);
+
                 var bin_path = txt_path.Replace("txt", "bin");
 
 
-                if (!File.Exists(bin_path)) { using (var s = File.Create(bin_path)) { } }
+                if (!File.Exists(bin_path)) { using (var s = File.OpenWrite(bin_path)) { } }
 
                 var jsonParser = new TDStreamJsonProcessor();
                 var processor = new TDStreamBinFileProcessor();
@@ -156,18 +160,20 @@ namespace TDConsole
 
             Console.WriteLine("Input Save Directory :");
             var path = Console.ReadLine();
-            if(string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
-                path = "../../../Records";
+                path = "/Records";
             }
 
             Console.WriteLine("Save Format 0) All 1) Json 2) Binary:");
-            int format = Console.ReadKey().KeyChar;
+            char format = Console.ReadKey().KeyChar;
+            Console.WriteLine();
 
             Console.WriteLine("Input QOS : 0-5 (500, 750, 1000, 1500, 3000, 5000)ms");
-            var qos = Console.ReadLine();
+            var qos = Console.ReadKey().KeyChar;
+            Console.WriteLine();
             int qosInt = 0;
-            int.TryParse(qos, out qosInt);
+            int.TryParse(qos.ToString(), out qosInt);
 
             var txt_path = $"{path}{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
             var bin_path = $"{path}/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";

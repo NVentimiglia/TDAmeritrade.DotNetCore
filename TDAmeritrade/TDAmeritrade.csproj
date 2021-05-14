@@ -4,8 +4,25 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="BinaryPack" Version="1.0.1" />
+    <None Remove="Models\TDAuthModels.cs.meta" />
+    <None Remove="Models\TDOptionChainModels.cs.meta" />
+    <None Remove="Models\TDPriceHistoryModels.cs.meta" />
+    <None Remove="Models\TDPrincipalModels.cs.meta" />
+    <None Remove="Models\TDQuoteModels.cs.meta" />
+    <None Remove="Models\TDStreamModels.cs.meta" />
+    <None Remove="Models\TDUserInfoModels.cs.meta" />
+    <None Remove="Serialization\BinarySerializer.cs~RF2332ae.TMP" />
+    <None Remove="Utilities\ITDPersistentCache.cs.meta" />
+    <None Remove="Utilities\TDStreamJsonProcessor.cs.meta" />
+    <None Remove="Utilities\TDUnprotectedCache.cs.meta" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

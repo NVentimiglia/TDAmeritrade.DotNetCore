@@ -1,7 +1,7 @@
-﻿using BinaryPack;
+﻿//using BinaryPack;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using TDAmeritrade.Serialization;
 
 namespace TDAmeritrade
 {
@@ -31,7 +31,6 @@ namespace TDAmeritrade
         public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDBookSignal> OnBookSignal = delegate { };
-
 
         public void ReadFile(string path)
         {
@@ -79,7 +78,7 @@ namespace TDAmeritrade
             var length = ReadInt(stream, 0);
             var payload = new byte[length];
             Buffer.BlockCopy(stream, sizeof(int), payload, 0, length);
-            return BinaryConverter.Deserialize<TModel>(payload);
+            return BinarySerializer.DeserializeObject<TModel>(payload);
         }
 
         public TModel Deserialize<TModel>(Stream stream) where TModel : new()
@@ -89,7 +88,7 @@ namespace TDAmeritrade
             var length = ReadInt(header, 0);
             var payload = new byte[length];
             stream.Read(payload, 0, length);
-            return BinaryConverter.Deserialize<TModel>(payload);
+            return BinarySerializer.DeserializeObject<TModel>(payload);
         }
 
 
@@ -101,7 +100,7 @@ namespace TDAmeritrade
             //
             // payload
             const int headsize = sizeof(int) + sizeof(byte);
-            byte[] buffer = BinaryConverter.Serialize(model);
+            byte[] buffer = BinarySerializer.SerializeObject(model);
             byte[] header = new byte[buffer.Length + headsize];
             Buffer.BlockCopy(buffer, 0, header, headsize, buffer.Length);
             WriteInt(buffer.Length, header, 1);
