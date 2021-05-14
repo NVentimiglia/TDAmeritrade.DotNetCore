@@ -17,6 +17,15 @@ namespace TDAmeritrade
         /// </summary>
         public string symbol { get; set; }
     }
+    public enum TDSignalTypes
+    {
+        NA,
+        HEARTBEAT,
+        CHART,
+        QUOTE,
+        TIMESALE,
+        BOOK
+    }
 
     [Serializable]
     public struct TDHeartbeatSignal : IBitModel
@@ -253,6 +262,7 @@ namespace TDAmeritrade
             stream.Parse(ref sequence);
             stream.Parse(ref tradetime);
             stream.Parse(ref lastprice);
+            stream.Parse(ref lastsize);
             stream.Parse(ref lastsequence);
         }
     }

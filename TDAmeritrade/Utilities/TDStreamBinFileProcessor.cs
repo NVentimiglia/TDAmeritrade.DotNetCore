@@ -10,16 +10,6 @@ namespace TDAmeritrade
     /// </summary>
     public class TDStreamBinFileProcessor
     {
-        private enum SignalTypes
-        {
-            NA,
-            HEARTBEAT,
-            CHART,
-            QUOTE,
-            TIMESALE,
-            BOOK
-        }
-
         /// <summary> Server Sent Events </summary>
         public event Action<TDHeartbeatSignal> OnHeartbeatSignal = delegate { };
         /// <summary> Server Sent Events </summary>
@@ -54,22 +44,22 @@ namespace TDAmeritrade
                     {
                         return;
                     }
-                    var header = (SignalTypes)head;
+                    var header = (TDSignalTypes)head;
                     switch (header)
                     {
-                        case SignalTypes.HEARTBEAT:
+                        case TDSignalTypes.HEARTBEAT:
                             OnHeartbeatSignal(_reader.Read<TDHeartbeatSignal>());
                             break;
-                        case SignalTypes.BOOK:
+                        case TDSignalTypes.BOOK:
                             OnBookSignal(_reader.Read<TDBookSignal>());
                             break;
-                        case SignalTypes.QUOTE:
+                        case TDSignalTypes.QUOTE:
                             OnQuoteSignal(_reader.Read<TDQuoteSignal>());
                             break;
-                        case SignalTypes.TIMESALE:
+                        case TDSignalTypes.TIMESALE:
                             OnTimeSaleSignal(_reader.Read<TDTimeSaleSignal>());
                             break;
-                        case SignalTypes.CHART:
+                        case TDSignalTypes.CHART:
                             OnChartSignal(_reader.Read<TDChartSignal>());
                             break;
                         default:
@@ -90,23 +80,23 @@ namespace TDAmeritrade
             // payload
             if (model is TDHeartbeatSignal)
             {
-                _writer.Parse((byte)SignalTypes.HEARTBEAT);
+                _writer.Parse((byte)TDSignalTypes.HEARTBEAT);
             }
             else if (model is TDBookSignal)
             {
-                _writer.Parse((byte)SignalTypes.BOOK);
+                _writer.Parse((byte)TDSignalTypes.BOOK);
             }
             else if (model is TDTimeSaleSignal)
             {
-                _writer.Parse((byte)SignalTypes.TIMESALE);
+                _writer.Parse((byte)TDSignalTypes.TIMESALE);
             }
             else if (model is TDQuoteSignal)
             {
-                _writer.Parse((byte)SignalTypes.QUOTE);
+                _writer.Parse((byte)TDSignalTypes.QUOTE);
             }
             else if (model is TDChartSignal)
             {
-                _writer.Parse((byte)SignalTypes.CHART);
+                _writer.Parse((byte)TDSignalTypes.CHART);
             }
             _writer.Parse(model);
             return _writer.Copy();
