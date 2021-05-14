@@ -278,11 +278,6 @@ namespace TDConsole
             }
         }
 
-        void WriteBin<TModel>(TModel model) where TModel : class
-        {
-
-        }
-
 
         bool IsFutureSymbol(string s)
         {
