@@ -1,10 +1,8 @@
 ﻿using FlatSharp;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using TDAmeritrade;
 
@@ -46,6 +44,7 @@ namespace TDConsole
             Console.WriteLine("1) SignIn first time");
             Console.WriteLine("2) Sign in refresh");
             Console.WriteLine("3) Record Stream data");
+            Console.WriteLine("4) Upgrade Stream data");
 
             var option = Console.ReadKey();
             Console.WriteLine();
@@ -87,7 +86,6 @@ namespace TDConsole
             Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
         }
 
-
         public async Task SignInRefresh()
         {
             await client.SignIn();
@@ -98,14 +96,20 @@ namespace TDConsole
         {
             Console.WriteLine("Copy...");
 
-            var files = Directory.GetFiles($"F:/Records/");
+            Console.WriteLine("Input Save Directory :");
+            var path = Console.ReadLine();
+            if (string.IsNullOrEmpty(path))
+            {
+                path = "/Records/";
+            }
+
+            var files = Directory.GetFiles(path);
 
             foreach (var txt_path in files)
             {
                 Console.WriteLine("Copy... "+ txt_path);
 
                 var bin_path = txt_path.Replace("txt", "bin");
-
 
                 if (!File.Exists(bin_path)) { using (var s = File.OpenWrite(bin_path)) { } }
 
@@ -118,13 +122,13 @@ namespace TDConsole
                 {
                     jsonParser.OnBookSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnChartSignal += (o) => writer.Write(processor.Serialize(o));
-                    jsonParser.OnHeartbeatSignal += (o) => writer.Write(processor.Serialize(o));
+                    //jsonParser.OnHeartbeatSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnQuoteSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnTimeSaleSignal += (o) => writer.Write(processor.Serialize(o));
 
                     jsonParser.OnBookSignal += (o) => writes++;
                     jsonParser.OnChartSignal += (o) => writes++;
-                    jsonParser.OnHeartbeatSignal += (o) => writes++;
+                    //jsonParser.OnHeartbeatSignal += (o) => writes++;
                     jsonParser.OnQuoteSignal += (o) => writes++;
                     jsonParser.OnTimeSaleSignal += (o) => writes++;
 
@@ -145,7 +149,7 @@ namespace TDConsole
                 processor.OnQuoteSignal += (o) => reads++;
                 processor.OnTimeSaleSignal += (o) => reads++;
                 processor.ReadFile(bin_path);
-                var a = writes;
+                Console.WriteLine($"reads {reads} writes {writes}");
             }
             Console.WriteLine("Done");
         }
@@ -162,7 +166,7 @@ namespace TDConsole
             var path = Console.ReadLine();
             if (string.IsNullOrEmpty(path))
             {
-                path = "/Records";
+                path = "/Records/";
             }
 
             Console.WriteLine("Save Format 0) All 1) Json 2) Binary:");

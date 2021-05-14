@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using TDAmeritrade.Serialization;
 
 namespace TDAmeritrade
 {
@@ -20,13 +19,17 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDHeartbeatSignal
+    public struct TDHeartbeatSignal : IBitModel
     {
         /// <summary>
         /// UNIX
         /// </summary> 
-        [BinaryField(-1)]
         public long timestamp { get; set; }
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+        }
     }
 
     [Serializable]
@@ -42,256 +45,277 @@ namespace TDAmeritrade
 
 
     [Serializable]
-    public struct TDBookSignal : ISignal
+    public struct TDBookSignal : ISignal, IBitModel
     {
         /// <summary>
         /// UNIX
         /// </summary>  
-        [BinaryField(-1)]
         public long timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
-        [BinaryField(0)]
         public string symbol { get; set; }
         /// <summary>
         /// Book source
         /// </summary>
-        [BinaryField(1)]
-        public TDBookOptions id { get; set; }
+        public TDBookOptions id;
         /// <summary>
         /// 2 bids
         /// </summary>
-        [BinaryField(2)]
-        public TDBookLevel[] bids { get; set; }
+        public TDBookLevel[] bids;
         /// <summary>
         /// 3 asks
         /// </summary>
-        [BinaryField(3)]
-        public TDBookLevel[] asks { get; set; }
+        public TDBookLevel[] asks;
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+            symbol = stream.Parse(symbol);
+            id = (TDBookOptions)stream.Parse((byte)id);
+            stream.Parse(ref bids);
+            stream.Parse(ref asks);
+        }
     }
 
     [Serializable]
-    public struct TDBookLevel
+    public struct TDBookLevel : IBitModel
     {
         /// <summary>
         /// 0 this price level
         /// </summary>
         [JsonProperty("0")]
-        [BinaryField(0)]
-        public double price { get; set; }
+        public double price;
         /// <summary>
         /// 2 total volume at this level
         /// </summary>
         [JsonProperty("1")]
-        [BinaryField(2)]
-        public double quantity { get; set; }
+        public double quantity;
+
+        public void Parse(BitSerializer stream)
+        {
+            stream.Parse(ref price);
+            stream.Parse(ref quantity);
+        }
     }
 
     [Serializable]
-    public struct TDQuoteSignal : ISignal
+    public struct TDQuoteSignal : ISignal, IBitModel
     {
         /// <summary>
         /// UNIX
         /// </summary>  
-        [BinaryField(-1)]
         public long timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
-        [BinaryField(0)]
         public string symbol { get; set; }
 
 
         /// <summary>
         /// 1 Current Best Bid Price
         /// </summary>
-        [BinaryField(1)]
-        public double bidprice { get; set; }
+        public double bidprice;
         /// <summary>
         /// 2 Current Best Ask Price
         /// </summary>
-        [BinaryField(2)]
-        public double askprice { get; set; }
+        public double askprice;
         /// 4 Number of shares for bid
         /// </summary>
-        [BinaryField(4)]
-        public double bidsize { get; set; }
+        public double bidsize;
         /// <summary>
         /// 5 Number of shares for ask
         /// </summary>
-        [BinaryField(5)]
-        public double asksize { get; set; }
-
+        public double asksize;
 
         /// <summary>
         /// 3 Price at which the last trade was matched
         /// </summary>
-        [BinaryField(3)]
-        public double lastprice { get; set; }
+        public double lastprice;
         /// <summary>
         /// 9 Number of shares traded with last trade
         /// </summary>
-        [BinaryField(9)]
-        public double lastsize { get; set; }
-
+        public double lastsize;
 
         /// <summary>
         /// <summary>
         /// 8 Aggregated shares traded throughout the day, including pre/post market hours.
         /// </summary>
-        [BinaryField(8)]
-        public long totalvolume { get; set; }
+        public long totalvolume;
         /// <summary>
         /// 28 Previous day’s opening price
         /// </summary>
-        [BinaryField(28)]
-        public double openprice { get; set; }
+        public double openprice;
         /// <summary>
         /// 15 Previous day’s closing price
         /// </summary>
-        [BinaryField(15)]
-        public double closeprice { get; set; }
+        public double closeprice;
         /// <summary>
         /// 13 Day’s low trade price
         /// </summary>
-        [BinaryField(13)]
-        public double lowprice { get; set; }
+        public double lowprice;
         /// <summary>
         /// 12 Day’s high trade price
         /// </summary>
-        [BinaryField(12)]
-        public double highprice { get; set; }
+        public double highprice;
 
         /// <summary>
         /// 10 Trade time of the last trade
         /// </summary>
-        [BinaryField(10)]
-        public long tradetime { get; set; }
+        public long tradetime;
         /// <summary>
         /// 11 Quote time of the last trade
         /// </summary>
-        [BinaryField(11)]
-        public long quotetime { get; set; }
+        public long quotetime;
         /// <summary>
         /// 7 Exchange with the best bid
         /// </summary>
-        [BinaryField(7)]
-        public char bidid { get; set; }
+        public char bidid;
         /// <summary>
         /// 6 Exchange with the best ask
         /// </summary>
-        [BinaryField(6)]
-        public char askid { get; set; }
+        public char askid;
         /// <summary>
         /// 14 Indicates Up or Downtick(NASDAQ NMS & Small Cap)
         /// </summary>
-        [BinaryField(14)]
-        public char bidtick { get; set; }
+        public char bidtick;
         /// <summary>
         /// 24 Option Risk/Volatility Measurement
         /// </summary>
-        [BinaryField(24)]
-        public double volatility { get; set; }
+        public double volatility;
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+            symbol = stream.Parse(symbol);
+            stream.Parse(ref bidprice);
+            stream.Parse(ref askprice);
+            stream.Parse(ref bidsize);
+            stream.Parse(ref asksize);
+
+            stream.Parse(ref lastprice);
+            stream.Parse(ref lastsize);
+
+            stream.Parse(ref totalvolume);
+            stream.Parse(ref openprice);
+            stream.Parse(ref closeprice);
+            stream.Parse(ref lowprice);
+            stream.Parse(ref highprice);
+
+
+            stream.Parse(ref tradetime);
+            stream.Parse(ref quotetime);
+            stream.Parse(ref bidid);
+            stream.Parse(ref askid);
+            stream.Parse(ref bidtick);
+            stream.Parse(ref volatility);
+        }
     }
 
     [Serializable]
-    public struct TDTimeSaleSignal : ISignal
+    public struct TDTimeSaleSignal : ISignal, IBitModel
     {
         /// <summary>
         /// UNIX
         /// </summary>
-        [BinaryField(-1)]
         public long timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
-        [BinaryField(0)]
         public string symbol { get; set; }
 
         /// <summary>
         /// order
         /// </summary>
-        [BinaryField(-2)]
-        public long sequence { get; set; }
+        public long sequence;
 
         /// <summary>
         /// 1 Trade time of the last trade
         /// </summary>
-        [BinaryField(1)]
-        public long tradetime { get; set; }
+        public long tradetime;
         /// <summary>
         /// 2 Price at which the last trade was matched
         /// </summary>
-        [BinaryField(2)]
-        public double lastprice { get; set; }
+        public double lastprice;
         /// <summary>
         /// 3 Number of shares traded with last trade
         /// </summary>
-        [BinaryField(3)]
-        public double lastsize { get; set; }
+        public double lastsize;
         /// <summary>
         /// 4 Number of Number of shares for bid
         /// </summary>
-        [BinaryField(4)]
-        public long lastsequence { get; set; }
+        public long lastsequence;
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+            symbol = stream.Parse(symbol);
+            stream.Parse(ref sequence);
+            stream.Parse(ref tradetime);
+            stream.Parse(ref lastprice);
+            stream.Parse(ref lastsequence);
+        }
     }
 
     [Serializable]
-    public struct TDChartSignal : ISignal
+    public struct TDChartSignal : ISignal, IBitModel
     {
         /// <summary>
         /// UNIX
         /// </summary>
-        [BinaryField(-1)]
         public long timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
-        [BinaryField(0)]
         public string symbol { get; set; }
 
 
         /// <summary>
         /// 1 Opening price for the minute
         /// </summary>
-        [BinaryField(1)]
-        public double openprice { get; set; }
+        public double openprice;
         /// <summary>
         /// 2 Highest price for the minute
         /// </summary>
-        [BinaryField(2)]
-        public double highprice { get; set; }
+        public double highprice;
         /// <summary>
         /// 3 Chart’s lowest price for the minute
         /// </summary>
-        [BinaryField(3)]
-        public double lowprice { get; set; }
+        public double lowprice;
         /// <summary>
         /// 4 Closing price for the minute
         /// </summary>
-        [BinaryField(4)]
-        public double closeprice { get; set; }
+        public double closeprice;
         /// <summary>
         /// 5 Total volume for the minute
         /// </summary>
-        [BinaryField(5)]
-        public double volume { get; set; }
+        public double volume;
         /// <summary>
         /// 6 Identifies the candle minute
         /// </summary>
-        [BinaryField(6)]
-        public long sequence { get; set; }
+        public long sequence;
         /// <summary>
         /// 7 Milliseconds since Epoch
         /// </summary>
-        [BinaryField(7)]
-        public long charttime { get; set; }
+        public long charttime;
         /// <summary>
         /// 8 Not useful
         /// </summary>
-        [BinaryField(8)]
-        public int chartday { get; set; }
+        public int chartday;
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+            symbol = stream.Parse(symbol);
+            stream.Parse(ref openprice);
+            stream.Parse(ref highprice);
+            stream.Parse(ref lowprice);
+            stream.Parse(ref closeprice);
+            stream.Parse(ref volume);
+            stream.Parse(ref sequence);
+            stream.Parse(ref charttime);
+            stream.Parse(ref chartday);
+        }
     }
 
     [Serializable]
