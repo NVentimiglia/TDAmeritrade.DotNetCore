@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System;
 using System.Threading.Tasks;
 
 namespace TDAmeritrade.Tests
@@ -15,6 +16,73 @@ namespace TDAmeritrade.Tests
             client = new TDAmeritradeClient(cache);
             await client.SignIn();
             Assert.IsTrue(client.IsSignedIn);
+        }
+
+        [Test]
+        public void TestTimeConverter()
+        {
+            double stamp1 = 1464148800000 / 1000;
+            var time1 = TDHelpers.FromUnixTimeSeconds(stamp1);
+            Assert.IsTrue(time1.Minute == 00);
+            Assert.IsTrue(time1.Hour == 4);
+            Assert.IsTrue(time1.Day == 25);
+            Assert.IsTrue(time1.Month == 5);
+            Assert.IsTrue(time1.Year == 2016);
+            Assert.IsTrue(time1.DayOfWeek == System.DayOfWeek.Wednesday);
+
+            var time2 = new DateTime(2016, 5, 25, 4, 0, 0, 0, DateTimeKind.Utc);
+            var time3 = TDHelpers.ToEST(time2);
+            Assert.IsTrue(time3.Hour == 0);
+
+            var stamp2 = time2.ToUnixTimeSeconds();
+            var stamp3 = TDHelpers.UnixSecondsToMiliseconds(stamp2);
+            Assert.IsTrue(stamp3 == 1464148800000);
+        }
+
+
+        [Test]
+        public void TestCandleConsolidate()
+        {
+            var array = new TDPriceCandle[9];
+            for (int i = 0; i < 9; i++)
+            {
+                array[i] = new TDPriceCandle { close = i, high = i, low = i, open = i, volume = i, datetime = i };
+            }
+            var merge1 = TDHelpers.ConsolidateByTotalCount(array, 3);
+            Assert.IsTrue(merge1.Length == 3);
+            var merge2 = TDHelpers.ConsolidateByTotalCount(array, 5);
+            Assert.IsTrue(merge2.Length == 5);
+            var merge3 = TDHelpers.ConsolidateByTotalCount(array, 1);
+            Assert.IsTrue(merge3.Length == 1);
+
+            Assert.IsTrue(merge3[0].open == 0);
+            Assert.IsTrue(merge3[0].high == 8);
+            Assert.IsTrue(merge3[0].low == 0);
+            Assert.IsTrue(merge3[0].close == 8);
+            Assert.IsTrue(merge3[0].volume == 36);
+        }
+
+
+        [Test]
+        public void TestCandleConsolidate2()
+        {
+            var array = new TDPriceCandle[9];
+            for (int i = 0; i < 9; i++)
+            {
+                array[i] = new TDPriceCandle { close = i, high = i, low = i, open = i, volume = i, datetime = i };
+            }
+            var merge1 = TDHelpers.ConsolidateByPeriodCount(array, 3);
+            Assert.IsTrue(merge1.Length == 3);
+            var merge2 = TDHelpers.ConsolidateByPeriodCount(array, 5);
+            Assert.IsTrue(merge2.Length == 2);
+            var merge3= TDHelpers.ConsolidateByPeriodCount(array, 9);
+            Assert.IsTrue(merge3.Length == 1);
+
+            Assert.IsTrue(merge3[0].open == 0);
+            Assert.IsTrue(merge3[0].high == 8);
+            Assert.IsTrue(merge3[0].low == 0);
+            Assert.IsTrue(merge3[0].close == 8);
+            Assert.IsTrue(merge3[0].volume == 36);
         }
 
         [Test]
@@ -119,12 +187,7 @@ namespace TDAmeritrade.Tests
                 await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_EQUITY);
                 await socket.SubscribeBook(symbol, TDBookOptions.LISTED_BOOK);
                 await socket.SubscribeBook(symbol, TDBookOptions.NASDAQ_BOOK);
-                for (int i = 0; i < 10; i++)
-                {
-                    await Task.Delay(1000);
-                    if (socket.IsConnected)
-                        break;
-                }
+                await Task.Delay(1000);
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }
@@ -148,14 +211,8 @@ namespace TDAmeritrade.Tests
                 await socket.SubscribeQuote(symbol);
                 await socket.SubscribeChart(symbol, TDChartSubs.CHART_FUTURES);
                 await socket.SubscribeTimeSale(symbol, TDTimeSaleServices.TIMESALE_FUTURES);
-
-                for (int i = 0; i < 10; i++)
-                {
-                    await Task.Delay(1000);
-                    if (socket.IsConnected)
-                        break;
-                }
-
+                await Task.Delay(1000);
+                Assert.IsTrue(socket.IsConnected);
                 Assert.IsTrue(socket.IsConnected);
                 await socket.Disconnect();
             }

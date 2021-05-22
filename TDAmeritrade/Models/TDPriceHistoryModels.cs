@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TDAmeritrade
 {
@@ -11,10 +14,24 @@ namespace TDAmeritrade
         public double low { get; set; }
         public double open { get; set; }
         public double volume { get; set; }
+
+        [JsonIgnore]
+        public DateTime DateTime
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeSeconds(datetime);
+            }
+            set
+            {
+                datetime = TDHelpers.ToUnixTimeSeconds(value);
+            }
+        }
     }
 
 
     [Serializable]
+    ///https://developer.tdameritrade.com/content/price-history-samples
     public struct TDPriceHistoryRequest
     {
         [Serializable]
@@ -77,17 +94,44 @@ namespace TDAmeritrade
         /// <summary>
         /// End date as milliseconds since epoch. If startDate and endDate are provided, period should not be provided. Default is previous trading day.
         /// </summary>
-        public DateTime? endDate { get; set; }
+        public double? endDate { get; set; }
 
         /// <summary>
         /// Start date as milliseconds since epoch. If startDate and endDate are provided, period should not be provided.
         /// </summary>
-        public DateTime? startDate { get; set; }
+        public double? startDate { get; set; }
 
         /// <summary>
         /// true to return extended hours data, false for regular market hours only. Default is true
         /// </summary>
         public bool needExtendedHoursData { get; set; }
+
+
+        [JsonIgnore]
+        public DateTime? EndDate
+        {
+            get
+            {
+                return endDate.HasValue ? TDHelpers.FromUnixTimeSeconds(endDate.Value) : (DateTime?)null;
+            }
+            set
+            {
+                endDate = value.HasValue ? TDHelpers.ToUnixTimeSeconds(value.Value) : (double?)null;
+            }
+        }
+
+        [JsonIgnore]
+        public DateTime? StartDate
+        {
+            get
+            {
+                return startDate.HasValue ? TDHelpers.FromUnixTimeSeconds(startDate.Value) : (DateTime?)null;
+            }
+            set
+            {
+                startDate = value.HasValue ? TDHelpers.ToUnixTimeSeconds(value.Value) : (double?)null;
+            }
+        }
     }
 
 }

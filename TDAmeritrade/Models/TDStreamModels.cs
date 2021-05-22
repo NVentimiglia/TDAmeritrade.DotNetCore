@@ -11,11 +11,15 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary>   
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
+
         /// <summary>
         /// Ticker symbol in upper case. 
         /// </summary>
         public string symbol { get; set; }
+
+        public DateTime TimeStamp { get; }
+
     }
     public enum TDSignalTypes
     {
@@ -33,11 +37,18 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary> 
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
 
         public void Parse(BitSerializer stream)
         {
             timestamp = stream.Parse(timestamp);
+        }
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
         }
     }
 
@@ -59,7 +70,7 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary>  
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
@@ -84,6 +95,14 @@ namespace TDAmeritrade
             id = (TDBookOptions)stream.Parse((byte)id);
             stream.Parse(ref bids);
             stream.Parse(ref asks);
+        }
+
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
         }
     }
 
@@ -114,7 +133,7 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary>  
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
@@ -171,11 +190,11 @@ namespace TDAmeritrade
         /// <summary>
         /// 10 Trade time of the last trade
         /// </summary>
-        public long tradetime;
+        public double tradetime;
         /// <summary>
         /// 11 Quote time of the last trade
         /// </summary>
-        public long quotetime;
+        public double quotetime;
         /// <summary>
         /// 7 Exchange with the best bid
         /// </summary>
@@ -219,6 +238,27 @@ namespace TDAmeritrade
             stream.Parse(ref bidtick);
             stream.Parse(ref volatility);
         }
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
+        }
+        public DateTime QuoteTime
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(quotetime);
+            }
+        }
+        public DateTime TradeTime
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(tradetime);
+            }
+        }
     }
 
     [Serializable]
@@ -227,7 +267,7 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary>
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
@@ -241,7 +281,7 @@ namespace TDAmeritrade
         /// <summary>
         /// 1 Trade time of the last trade
         /// </summary>
-        public long tradetime;
+        public double tradetime;
         /// <summary>
         /// 2 Price at which the last trade was matched
         /// </summary>
@@ -265,6 +305,20 @@ namespace TDAmeritrade
             stream.Parse(ref lastsize);
             stream.Parse(ref lastsequence);
         }
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
+        }
+        public DateTime TradeTime
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(tradetime);
+            }
+        }
     }
 
     [Serializable]
@@ -273,7 +327,7 @@ namespace TDAmeritrade
         /// <summary>
         /// UNIX
         /// </summary>
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
         /// <summary>
         /// 0 Ticker symbol in upper case. 
         /// </summary>
@@ -325,6 +379,28 @@ namespace TDAmeritrade
             stream.Parse(ref sequence);
             stream.Parse(ref charttime);
             stream.Parse(ref chartday);
+        }
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
+        }
+
+        public DateTime ChartTime
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(charttime);
+            }
+        }
+        public int ChartIndex
+        {
+            get
+            {
+                return TDHelpers.ToCandleIndex(ChartTime, 1);
+            }
         }
     }
 
@@ -403,8 +479,15 @@ namespace TDAmeritrade
         public string service { get; set; }
         public string requestid { get; set; }
         public string command { get; set; }
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
         public TDRealtimeContent content { get; set; }
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
+        }
     }
 
     [Serializable]

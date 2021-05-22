@@ -43,12 +43,7 @@ namespace TDAmeritrade
             _cache = new TDUnprotectedCache();
         }
 
-        #region Helpers   
-        private static int ToEpoch(DateTime r)
-        {
-            TimeSpan t = r - new DateTime(1970, 1, 1);
-            return (int)t.TotalSeconds;
-        }
+        #region Helpers  
      
         private static bool IsNullOrEmpty(string s)
         {
@@ -264,6 +259,7 @@ namespace TDAmeritrade
         /// <summary>
         /// Get price history for a symbol
         /// https://developer.tdameritrade.com/price-history/apis/get/marketdata/%7Bsymbol%7D/pricehistory
+        /// https://developer.tdameritrade.com/content/price-history-samples
         /// </summary>
         public async Task<TDPriceCandle[]> GetPriceHistory(TDPriceHistoryRequest model)
         {
@@ -303,8 +299,8 @@ namespace TDAmeritrade
             query["frequency"] = model.frequency.ToString();
             if (model.endDate.HasValue)
             {
-                query["endDate"] = ToEpoch(model.endDate.Value).ToString();
-                query["startDate"] = ToEpoch(model.startDate.Value).ToString();
+                query["endDate"] = model.endDate.Value.ToString();
+                query["startDate"] = model.startDate.Value.ToString();
             }
             else
             {

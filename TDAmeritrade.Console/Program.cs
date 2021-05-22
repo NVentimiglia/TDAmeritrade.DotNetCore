@@ -111,14 +111,17 @@ namespace TDConsole
 
                 var bin_path = txt_path.Replace("txt", "bin");
 
-                if (!File.Exists(bin_path)) { using (var s = File.OpenWrite(bin_path)) { } }
+                if(File.Exists(bin_path))
+                {
+                    File.Delete(bin_path);
+                }
 
                 var jsonParser = new TDStreamJsonProcessor();
                 var processor = new TDStreamBinFileProcessor();
                 int writes = 0;
                 int reads = 0;
 
-                using (var writer = new FileStream(bin_path, FileMode.Open))
+                using (var writer = new FileStream(bin_path, FileMode.OpenOrCreate))
                 {
                     jsonParser.OnBookSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnChartSignal += (o) => writer.Write(processor.Serialize(o));
@@ -145,7 +148,7 @@ namespace TDConsole
 
                 processor.OnBookSignal += (o) => reads++;
                 processor.OnChartSignal += (o) => reads++;
-                processor.OnHeartbeatSignal += (o) => reads++;
+                //processor.OnHeartbeatSignal += (o) => reads++;
                 processor.OnQuoteSignal += (o) => reads++;
                 processor.OnTimeSaleSignal += (o) => reads++;
                 processor.ReadFile(bin_path);
@@ -179,7 +182,7 @@ namespace TDConsole
             int qosInt = 0;
             int.TryParse(qos.ToString(), out qosInt);
 
-            var txt_path = $"{path}{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
+            var txt_path = $"{path}/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt";
             var bin_path = $"{path}/{DateTime.UtcNow.ToString("yyyy-MM-dd")}.bin";
 
             if (!File.Exists(txt_path)) { using (var s = File.Create(txt_path)) { } }

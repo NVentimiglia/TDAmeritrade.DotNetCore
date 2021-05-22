@@ -8,6 +8,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Models\TDAuthModels.cs.meta" />
     <None Remove="Models\TDOptionChainModels.cs.meta" />
@@ -20,6 +24,7 @@
     <None Remove="Utilities\BitSerializer.cs.meta" />
     <None Remove="Utilities\IBitModel.cs.meta" />
     <None Remove="Utilities\ITDPersistentCache.cs.meta" />
+    <None Remove="Utilities\TDHelpers.cs.meta" />
     <None Remove="Utilities\TDStreamBinFileProcessor.cs.meta" />
     <None Remove="Utilities\TDStreamJsonProcessor.cs.meta" />
     <None Remove="Utilities\TDUnprotectedCache.cs.meta" />

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Tests", "TDAme
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Web", "TDAmeritrade.Web\TDAmeritrade.Web.csproj", "{C25F8E19-E248-43BD-AE08-847A2997CFA2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDAmeritrade.DataProtection", "TDAmeritrade.DataProtection\TDAmeritrade.DataProtection.csproj", "{0B3196C6-DD40-42AF-AED8-BA22B6B65368}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.DataProtection", "TDAmeritrade.DataProtection\TDAmeritrade.DataProtection.csproj", "{0B3196C6-DD40-42AF-AED8-BA22B6B65368}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

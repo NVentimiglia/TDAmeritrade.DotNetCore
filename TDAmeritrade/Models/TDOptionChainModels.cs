@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace TDAmeritrade
@@ -96,11 +97,11 @@ namespace TDAmeritrade
         /// <summary>
         /// Only return expirations after this date
         /// </summary>
-        public DateTime fromDate { get; set; }
+        public double fromDate { get; set; }
         /// <summary>
         /// Only return expirations before this date
         /// </summary>
-        public DateTime toDate { get; set; }
+        public double toDate { get; set; }
 
         /// <summary>
         /// Strike interval for spread strategy chains
@@ -142,6 +143,34 @@ namespace TDAmeritrade
         /// Type of contracts to return
         /// </summary>
         public TDOptionChainOptionTypes optionType { get; set; }
+
+
+        [JsonIgnore]
+        public DateTime FromDate
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeSeconds(fromDate);
+            }
+            set
+            {
+                fromDate = TDHelpers.ToUnixTimeSeconds(value);
+            }
+        }
+
+
+        [JsonIgnore]
+        public DateTime ToDate
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeSeconds(toDate);
+            }
+            set
+            {
+                toDate = TDHelpers.ToUnixTimeSeconds(value);
+            }
+        }
     }
 
     [Serializable]

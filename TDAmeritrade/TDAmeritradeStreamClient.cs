@@ -174,7 +174,7 @@ namespace TDAmeritrade
         }
 
         /// <summary>
-        /// Subscribeds to the quote event service
+        /// Subscribeds to the level one quote event service
         /// </summary>
         /// <param name="symbols"></param>
         /// <returns></returns>
@@ -367,7 +367,7 @@ namespace TDAmeritrade
         {
             //Converts ISO-8601 response in snapshot to ms since epoch accepted by Streamer
             var tokenTimeStampAsDateObj = DateTime.Parse(_prince.streamerInfo.tokenTimestamp);
-            var tokenTimeStampAsMs = tokenTimeStampAsDateObj.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            var tokenTimeStampAsMs = tokenTimeStampAsDateObj.ToUniversalTime().ToUnixTimeMilliseconds();
 
             NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
 
