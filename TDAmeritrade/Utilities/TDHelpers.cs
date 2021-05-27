@@ -50,7 +50,8 @@ namespace TDAmeritrade
 
         public static DateTime ToRegularTradingEnd(this DateTime time)
         {
-            return ToEST(time).Date.AddHours(12 + 4);
+            var est = ToEST(time);
+            return est.Date.AddHours(12 + 4);
         }
 
         public static DateTime ToPreMarketStart(this DateTime time)
@@ -60,7 +61,8 @@ namespace TDAmeritrade
 
         public static DateTime ToPostMarketEnd(this DateTime time)
         {
-            return ToEST(time).Date.AddHours(12 + 8);
+            var est = ToEST(time);
+            return est.Date.AddHours(12 + 8);
         }
 
         public static bool IsFutureSymbol(string symbol)

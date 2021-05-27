@@ -44,7 +44,7 @@ namespace TDConsole
             Console.WriteLine("1) SignIn first time");
             Console.WriteLine("2) Sign in refresh");
             Console.WriteLine("3) Record Stream data");
-            Console.WriteLine("4) Upgrade Stream data");
+            Console.WriteLine("4) Convert Json to Bin");
 
             var option = Console.ReadKey();
             Console.WriteLine();
@@ -64,7 +64,7 @@ namespace TDConsole
                     break;
                 case ConsoleKey.NumPad4:
                 case ConsoleKey.D4:
-                    BinStream();
+                    ConvertJsonToBin();
                     break;
             }
 
@@ -92,7 +92,7 @@ namespace TDConsole
             Console.WriteLine($"IsSignedIn : {client.IsSignedIn}");
         }
 
-        public void BinStream()
+        public void ConvertJsonToBin()
         {
             Console.WriteLine("Copy...");
 
@@ -107,21 +107,22 @@ namespace TDConsole
 
             foreach (var txt_path in files)
             {
-                Console.WriteLine("Copy... "+ txt_path);
+                if (txt_path.Contains("Log"))
+                    continue;
+
+                Console.WriteLine("Copy... " + txt_path);
 
                 var bin_path = txt_path.Replace("txt", "bin");
 
-                if(File.Exists(bin_path))
-                {
-                    File.Delete(bin_path);
-                }
+                if (File.Exists(bin_path)) { File.Delete(bin_path); }
+                if (!File.Exists(bin_path)) { using (var s = File.Create(bin_path)) { } }
 
                 var jsonParser = new TDStreamJsonProcessor();
                 var processor = new TDStreamBinFileProcessor();
                 int writes = 0;
                 int reads = 0;
 
-                using (var writer = new FileStream(bin_path, FileMode.OpenOrCreate))
+                using (var writer = new FileStream(bin_path, FileMode.Append))
                 {
                     jsonParser.OnBookSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnChartSignal += (o) => writer.Write(processor.Serialize(o));
@@ -251,7 +252,7 @@ namespace TDConsole
                     {
                         lock (bin_path)
                         {
-                            using (var writer = new FileStream(bin_path, FileMode.Open))
+                            using (var writer = new FileStream(bin_path, FileMode.Append))
                             {
                                 writer.Write(buff);
                             }
