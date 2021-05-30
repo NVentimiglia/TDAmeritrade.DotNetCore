@@ -466,6 +466,20 @@ namespace TDAmeritrade
         /// <summary>
         /// Retrieve market hours for specified single market
         /// </summary>
+        public async Task<TDMarketHour> GetMarketHours(MarketTypes type, DateTime day)
+        {
+            var json = await GetMarketHoursJson(type, day);
+            if (!IsNullOrEmpty(json))
+            {
+                var doc = JObject.Parse(json);
+                return doc.First.First.First.First.ToObject<TDMarketHour>();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Retrieve market hours for specified single market
+        /// </summary>
         public async Task<string> GetMarketHoursJson(MarketTypes type, DateTime day)
         {
             if (!IsSignedIn)
@@ -474,10 +488,10 @@ namespace TDAmeritrade
             }
 
             var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
-
+            var dayString = day.ToString("yyyy-MM-dd").Replace("/","-");
             string path = IsSignedIn
-                ? $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?date={day.ToShortDateString()}"
-                : $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?apikey={key}&date={day.ToShortDateString()}";
+                ? $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?date={dayString}"
+                : $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?apikey={key}&date={dayString}";
 
             using (var client = new HttpClient())
             {
