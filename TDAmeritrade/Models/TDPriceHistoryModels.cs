@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace TDAmeritrade
 {
     [Serializable]
-    public struct TDPriceCandle
+    public struct TDPriceCandle : IBitModel
     {
         public double close { get; set; }
         public double datetime { get; set; }
@@ -26,6 +24,16 @@ namespace TDAmeritrade
             {
                 datetime = TDHelpers.ToUnixTimeSeconds(value);
             }
+        }
+
+        public void Parse(BitSerializer stream)
+        {
+            datetime = stream.Parse(datetime);
+            open = stream.Parse(open);
+            low = stream.Parse(low);
+            high = stream.Parse(high);
+            close = stream.Parse(close);
+            volume = stream.Parse(volume);
         }
     }
 

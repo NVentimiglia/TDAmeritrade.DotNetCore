@@ -191,7 +191,7 @@ namespace TDAmeritrade
             var json = await GetOptionsChainJson(request);
             if (!IsNullOrEmpty(json))
             {
-                return JsonConvert.DeserializeObject<TDOptionChain>(json);
+                return JsonConvert.DeserializeObject<TDOptionChain>(json, new TDOptionChainConverter());
             }
             return null;
         }
@@ -213,18 +213,35 @@ namespace TDAmeritrade
                 queryString.Add("apikey", AuthResult.consumer_key);
             }
             queryString.Add("symbol", request.symbol);
-            queryString.Add("contractType", request.contractType.ToString());
-            queryString.Add("strikeCount", request.strikeCount.ToString());
+            if (request.contractType.HasValue)
+            {
+                queryString.Add("contractType", request.contractType.ToString());
+            }
+            if (request.strikeCount.HasValue)
+            {
+                queryString.Add("strikeCount", request.strikeCount.ToString());
+            }
             queryString.Add("includeQuotes", request.includeQuotes ? "FALSE" : "TRUE");
-            queryString.Add("strategy", request.strategy.ToString());
-            queryString.Add("interval", request.interval.ToString());
+            if (request.interval.HasValue)
+            {
+                queryString.Add("interval", request.interval.ToString());
+            }
             if (request.strike.HasValue)
             {
                 queryString.Add("strike", request.strike.Value.ToString());
             }
-            queryString.Add("fromDate", request.fromDate.ToString("yyyy-MM-dd"));
-            queryString.Add("toDate", request.toDate.ToString("yyyy-MM-dd"));
-            queryString.Add("expMonth", request.expMonth);
+            if (request.fromDate.HasValue)
+            {
+                queryString.Add("fromDate", request.fromDate.Value.ToString("yyyy-MM-dd"));
+            }
+            if (request.toDate.HasValue)
+            {
+                queryString.Add("toDate", request.toDate.Value.ToString("yyyy-MM-dd"));
+            }
+            if (!string.IsNullOrEmpty(request.expMonth))
+            {
+                queryString.Add("expMonth", request.expMonth);
+            }
             queryString.Add("optionType", request.optionType.ToString());
 
             if (request.strategy == TDOptionChainStrategy.ANALYTICAL)
@@ -237,7 +254,7 @@ namespace TDAmeritrade
 
             var q = queryString.ToString();
 
-            var path = $"https://api.tdameritrade.com/v1/marketdata/chains{q}";
+            var path = $"https://api.tdameritrade.com/v1/marketdata/chains?{q}";
 
             using (var client = new HttpClient())
             {
@@ -419,15 +436,12 @@ namespace TDAmeritrade
         /// <returns></returns>
         public async Task<string> GetPrincipalsJson(params TDPrincipalsFields[] fields)
         {
-
-            if (!HasConsumerKey)
+            if (!IsSignedIn)
             {
-                throw (new Exception("ConsumerKey is null"));
+                throw (new Exception("Not authenticated"));
             }
 
             var arg = string.Join(",", fields.Select(o => o.ToString()));
-
-            var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
 
             var path = $"https://api.tdameritrade.com/v1/userprincipals?fields={arg}";
 
@@ -446,5 +460,43 @@ namespace TDAmeritrade
             }
         }
         #endregion
+
+        #region Misc
+
+        /// <summary>
+        /// Retrieve market hours for specified single market
+        /// </summary>
+        public async Task<string> GetMarketHoursJson(MarketTypes type, DateTime day)
+        {
+            if (!IsSignedIn)
+            {
+                throw (new Exception("ConsumerKey is null"));
+            }
+
+            var key = HttpUtility.UrlEncode(AuthResult.consumer_key);
+
+            string path = IsSignedIn
+                ? $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?date={day.ToShortDateString()}"
+                : $"https://api.tdameritrade.com/v1/marketdata/{type}/hours?apikey={key}&date={day.ToShortDateString()}";
+
+            using (var client = new HttpClient())
+            {
+                if (IsSignedIn)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthResult.access_token);
+                }
+                var res = await client.GetAsync(path);
+
+                switch (res.StatusCode)
+                {
+                    case HttpStatusCode.OK:
+                        return await res.Content.ReadAsStringAsync();
+                    default:
+                        throw (new Exception($"{res.StatusCode} {res.ReasonPhrase}"));
+                }
+            }
+        }
+        #endregion
+
     }
 }

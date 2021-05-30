@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -74,7 +75,6 @@ namespace TDAmeritrade
         SNK,
     }
 
-
     [Serializable]
     public class TDOptionChainRequest
     {
@@ -85,7 +85,7 @@ namespace TDAmeritrade
         /// <summary>
         /// The number of strikes to return above and below the at-the-money price.
         /// </summary>
-        public int strikeCount { get; set; }
+        public int? strikeCount { get; set; }
         /// <summary>
         /// Passing a value returns a Strategy Chain
         /// </summary>
@@ -93,20 +93,20 @@ namespace TDAmeritrade
         /// <summary>
         /// Type of contracts to return in the chai
         /// </summary>
-        public TDOptionChainTypes contractType { get; set; }
+        public TDOptionChainTypes? contractType { get; set; }
         /// <summary>
         /// Only return expirations after this date
         /// </summary>
-        public double fromDate { get; set; }
+        public DateTime? fromDate { get; set; }
         /// <summary>
         /// Only return expirations before this date
         /// </summary>
-        public double toDate { get; set; }
+        public DateTime? toDate { get; set; }
 
         /// <summary>
         /// Strike interval for spread strategy chains
         /// </summary>
-        public double interval {get;set; }
+        public double? interval {get;set; }
         /// <summary>
         /// Provide a strike price to return options only at that strike price.
         /// </summary>
@@ -130,11 +130,11 @@ namespace TDAmeritrade
         /// <summary>
         /// Days to expiration to use in calculations. Applies only to ANALYTICAL strategy chains
         /// </summary>
-        public int daysToExpiration { get; set; }
+        public int? daysToExpiration { get; set; }
         /// <summary>
         /// Return only options expiring in the specified month
         /// </summary>
-        public string expMonth { get; set; } = "ALL";
+        public string expMonth { get; set; }
         /// <summary>
         /// Include quotes for options in the option chain. Can be TRUE or FALSE. Default is FALSE.
         /// </summary>
@@ -143,34 +143,6 @@ namespace TDAmeritrade
         /// Type of contracts to return
         /// </summary>
         public TDOptionChainOptionTypes optionType { get; set; }
-
-
-        [JsonIgnore]
-        public DateTime FromDate
-        {
-            get
-            {
-                return TDHelpers.FromUnixTimeSeconds(fromDate);
-            }
-            set
-            {
-                fromDate = TDHelpers.ToUnixTimeSeconds(value);
-            }
-        }
-
-
-        [JsonIgnore]
-        public DateTime ToDate
-        {
-            get
-            {
-                return TDHelpers.FromUnixTimeSeconds(toDate);
-            }
-            set
-            {
-                toDate = TDHelpers.ToUnixTimeSeconds(value);
-            }
-        }
     }
 
     [Serializable]
@@ -187,18 +159,118 @@ namespace TDAmeritrade
         public int interestRate { get; set; }
         public int underlyingPrice { get; set; }
         public int volatility { get; set; }
-        public string callExpDateMap { get; set; }
-        public string putExpDateMap { get; set; }
+
+        public List<TDOptionMap> callExpDateMap { get; set; }
+        public List<TDOptionMap> putExpDateMap { get; set; }
     }
 
-    [Serializable]
-    public class TDOptionDeliverablesList
+    public class TDOptionChainConverter : JsonConverter
     {
-        public string symbol { get; set; }
-        public string assetType { get; set; }
-        public string deliverableUnits { get; set; }
-        public string currencyType { get; set; }
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(TDOptionChain);
+        }
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var doc = JObject.Load(reader);
+            var model = new TDOptionChain();
+            model.symbol = doc["symbol"].Value<string>();
+            model.status = doc["status"].Value<string>();
+            model.underlying = doc["underlying"].ToObject<TDUnderlying>();
+            model.strategy = doc["strategy"].Value<string>();
+            model.interval = doc["interval"].Value<int>();
+            model.isDelayed = doc["isDelayed"].Value<bool>();
+            model.isIndex = doc["isIndex"].Value<bool>();
+            model.daysToExpiration = doc["daysToExpiration"].Value<int>();
+            model.interestRate = doc["interestRate"].Value<int>();
+            model.underlyingPrice = doc["underlyingPrice"].Value<int>();
+            model.volatility = doc["volatility"].Value<int>();
+            model.callExpDateMap = GetMap(doc["callExpDateMap"].ToObject<JObject>());
+            model.putExpDateMap = GetMap(doc["putExpDateMap"].ToObject<JObject>());
+            return model;
+        }
+
+        public List<TDOptionMap> GetMap(JObject doc)
+        {
+            var map = new List<TDOptionMap>();
+
+            foreach (var expiry in doc.Properties())
+            {
+                var exp = new TDOptionMap();
+                map.Add(exp);
+                exp.expires = DateTime.Parse(expiry.Name.Split(":")[0]);
+                exp.options = new List<TDOption>();
+
+                var set = expiry.Value.ToObject<JObject>();
+                foreach (var contract in set.Properties())
+                {
+                    var stike = double.Parse(contract.Name);
+                    var tuples = contract.Value.First.ToObject<JObject>();
+                    var option = new TDOption();
+                    option.strike = stike;
+                    exp.options.Add(option);
+
+                    option.putCall = tuples["putCall"].Value<string>();
+                    option.symbol = tuples["symbol"].Value<string>();
+                    option.description = tuples["description"].Value<string>();
+                    option.exchangeName = tuples["exchangeName"].Value<string>();
+                    option.bidPrice = tuples["bid"].Value<double>();
+                    option.askPrice = tuples["ask"].Value<double>();
+                    option.lastPrice = tuples["last"].Value<double>();
+                    option.markPrice = tuples["mark"].Value<double>();
+                    option.bidSize = tuples["bidSize"].Value<int>();
+                    option.askSize = tuples["askSize"].Value<int>();
+                    option.lastSize = tuples["lastSize"].Value<int>();
+                    option.highPrice = tuples["highPrice"].Value<double>();
+                    option.lowPrice = tuples["lowPrice"].Value<double>();
+                    option.openPrice = tuples["openPrice"].Value<double>();
+                    option.closePrice = tuples["closePrice"].Value<double>();
+                    option.totalVolume = tuples["totalVolume"].Value<int>();
+                    option.quoteTimeInLong = tuples["quoteTimeInLong"].Value<long>();
+                    option.tradeTimeInLong = tuples["tradeTimeInLong"].Value<long>();
+                    option.netChange = tuples["netChange"].Value<double>();
+                    option.volatility = tuples["volatility"].Value<double>();
+                    option.delta = tuples["delta"].Value<double>();
+                    option.gamma = tuples["gamma"].Value<double>();
+                    option.theta = tuples["theta"].Value<double>();
+                    option.vega = tuples["vega"].Value<double>();
+                    option.rho = tuples["rho"].Value<double>();
+                    option.timeValue = tuples["timeValue"].Value<double>();
+                    option.openInterest = tuples["openInterest"].Value<int>();
+                    option.isInTheMoney = tuples["inTheMoney"].Value<bool>();
+                    option.theoreticalOptionValue = tuples["theoreticalOptionValue"].Value<double>();
+                    option.theoreticalVolatility = tuples["theoreticalVolatility"].Value<double>();
+                    option.strikePrice = tuples["strikePrice"].Value<double>();
+                    option.expirationDate = tuples["expirationDate"].Value<string>();
+                    option.multiplier = tuples["multiplier"].Value<double>();
+                    option.settlementType = tuples["settlementType"].Value<string>();
+                    option.deliverableNote = tuples["deliverableNote"].Value<string>();
+                    option.percentChange = tuples["percentChange"].Value<double>();
+                    option.markChange = tuples["markChange"].Value<double>();
+                    option.markPercentChange = tuples["markPercentChange"].Value<double>();
+
+                }
+            }
+            return map;
+        }
+
     }
+
+
+    [Serializable]
+    public class TDOptionMap
+    {
+        public DateTime expires { get; set; }
+
+        public List<TDOption> options { get; set; }
+    }
+
+
 
     [Serializable]
     public class TDOption
@@ -207,73 +279,71 @@ namespace TDAmeritrade
         public string symbol { get; set; }
         public string description { get; set; }
         public string exchangeName { get; set; }
-        public int bidPrice { get; set; }
-        public int askPrice { get; set; }
-        public int lastPrice { get; set; }
-        public int markPrice { get; set; }
+        public double strike { get; set; }
+        public double bidPrice { get; set; }
+        public double askPrice { get; set; }
+        public double lastPrice { get; set; }
+        public double markPrice { get; set; }
         public int bidSize { get; set; }
         public int askSize { get; set; }
         public int lastSize { get; set; }
-        public int highPrice { get; set; }
-        public int lowPrice { get; set; }
-        public int openPrice { get; set; }
-        public int closePrice { get; set; }
+        public double highPrice { get; set; }
+        public double lowPrice { get; set; }
+        public double openPrice { get; set; }
+        public double closePrice { get; set; }
         public int totalVolume { get; set; }
-        public int quoteTimeInLong { get; set; }
-        public int tradeTimeInLong { get; set; }
-        public int netChange { get; set; }
-        public int volatility { get; set; }
-        public int delta { get; set; }
-        public int gamma { get; set; }
-        public int theta { get; set; }
-        public int vega { get; set; }
-        public int rho { get; set; }
-        public int timeValue { get; set; }
+        public long quoteTimeInLong { get; set; }
+        public long tradeTimeInLong { get; set; }
+
+        public double netChange { get; set; }
+        public double volatility { get; set; }
+        public double delta { get; set; }
+        public double gamma { get; set; }
+        public double theta { get; set; }
+        public double vega { get; set; }
+        public double rho { get; set; }
+        public double timeValue { get; set; }
         public int openInterest { get; set; }
         public bool isInTheMoney { get; set; }
-        public int theoreticalOptionValue { get; set; }
-        public int theoreticalVolatility { get; set; }
-        public bool isMini { get; set; }
-        public bool isNonStandard { get; set; }
-        public List<TDOptionDeliverablesList> optionDeliverablesList { get; set; }
-        public int strikePrice { get; set; }
+        public double theoreticalOptionValue { get; set; }
+        public double theoreticalVolatility { get; set; }
+        public double strikePrice { get; set; }
         public string expirationDate { get; set; }
         public string expirationType { get; set; }
-        public int multiplier { get; set; }
+        public double multiplier { get; set; }
         public string settlementType { get; set; }
         public string deliverableNote { get; set; }
-        public bool isIndexOption { get; set; }
-        public int percentChange { get; set; }
-        public int markChange { get; set; }
-        public int markPercentChange { get; set; }
+        public double percentChange { get; set; }
+        public double markChange { get; set; }
+        public double markPercentChange { get; set; }
     }
 
     [Serializable]
     public class TDUnderlying
     {
-        public int ask { get; set; }
+        public double ask { get; set; }
         public int askSize { get; set; }
-        public int bid { get; set; }
+        public double bid { get; set; }
         public int bidSize { get; set; }
-        public int change { get; set; }
-        public int close { get; set; }
+        public double change { get; set; }
+        public double close { get; set; }
         public bool delayed { get; set; }
         public string description { get; set; }
         public string exchangeName { get; set; }
-        public int fiftyTwoWeekHigh { get; set; }
-        public int fiftyTwoWeekLow { get; set; }
-        public int highPrice { get; set; }
-        public int last { get; set; }
-        public int lowPrice { get; set; }
-        public int mark { get; set; }
-        public int markChange { get; set; }
-        public int markPercentChange { get; set; }
-        public int openPrice { get; set; }
-        public int percentChange { get; set; }
-        public int quoteTime { get; set; }
+        public double fiftyTwoWeekHigh { get; set; }
+        public double fiftyTwoWeekLow { get; set; }
+        public double highPrice { get; set; }
+        public double last { get; set; }
+        public double lowPrice { get; set; }
+        public double mark { get; set; }
+        public double markChange { get; set; }
+        public double markPercentChange { get; set; }
+        public double openPrice { get; set; }
+        public double percentChange { get; set; }
+        public double quoteTime { get; set; }
         public string symbol { get; set; }
         public int totalVolume { get; set; }
-        public int tradeTime { get; set; }
+        public double tradeTime { get; set; }
     }
 
 
