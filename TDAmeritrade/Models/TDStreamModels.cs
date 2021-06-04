@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace TDAmeritrade
 {
@@ -28,7 +29,80 @@ namespace TDAmeritrade
         CHART,
         QUOTE,
         TIMESALE,
-        BOOK
+        BOOK,
+        OPTIONLEVELS,
+    }
+
+    [Serializable]
+    public struct TDOptionLevelSignal : IBitModel, ISignal
+    {
+        /// <summary>
+        /// UNIX
+        /// </summary>  
+        public double timestamp { get; set; }
+        /// <summary>
+        /// 0 Ticker symbol in upper case. 
+        /// </summary>
+        public string symbol { get; set; }
+
+        public string service { get; set; }
+
+        public List<TDOptionLevel> levels;
+
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
+            }
+        }
+
+        public void Parse(BitSerializer stream)
+        {
+            timestamp = stream.Parse(timestamp);
+            symbol = stream.Parse(symbol);
+            levels = stream.Parse(levels);
+        }
+    }
+
+    [Serializable]
+    public struct TDOptionLevel : IBitModel, IEquatable<TDOptionLevel>
+    {
+        public int putInterest;
+        public int callInterest;
+        public int putVolume;
+        public int callVolume;
+        public double strike;
+
+        public int TotalOpenInterest
+        {
+            get
+            {
+                return callInterest + putInterest;
+            }
+        }
+        public int TotalVolume
+        {
+            get
+            {
+                return putVolume + callVolume;
+            }
+        }
+
+
+        public bool Equals(TDOptionLevel other)
+        {
+            return strike == other.strike;
+        }
+
+        public void Parse(BitSerializer stream)
+        {
+            stream.Parse(ref putInterest);
+            stream.Parse(ref callInterest);
+            stream.Parse(ref putVolume);
+            stream.Parse(ref callVolume);
+            stream.Parse(ref strike);
+        }
     }
 
     [Serializable]

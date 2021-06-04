@@ -20,6 +20,8 @@ namespace TDAmeritrade
         public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDBookSignal> OnBookSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDOptionLevelSignal> OnOptionLevel = delegate { };
 
         private BitSerializer _reader = new BitSerializer();
         private BitSerializer _writer = new BitSerializer();
@@ -62,6 +64,9 @@ namespace TDAmeritrade
                         case TDSignalTypes.CHART:
                             OnChartSignal(_reader.Read<TDChartSignal>());
                             break;
+                        case TDSignalTypes.OPTIONLEVELS:
+                            OnOptionLevel(_reader.Read<TDOptionLevelSignal>());
+                            break;
                         default:
                             break;
                     }
@@ -97,6 +102,10 @@ namespace TDAmeritrade
             else if (model is TDChartSignal)
             {
                 _writer.Parse((byte)TDSignalTypes.CHART);
+            }
+            else if (model is TDOptionLevelSignal)
+            {
+                _writer.Parse((byte)TDSignalTypes.OPTIONLEVELS);
             }
             _writer.Parse(model);
             return _writer.Copy();

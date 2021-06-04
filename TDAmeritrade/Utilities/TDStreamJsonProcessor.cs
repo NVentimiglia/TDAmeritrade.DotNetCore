@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace TDAmeritrade
@@ -19,6 +20,8 @@ namespace TDAmeritrade
         public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDBookSignal> OnBookSignal = delegate { };
+        /// <summary> Server Sent Events </summary>
+        public event Action<TDOptionLevelSignal> OnOptionLevel = delegate { };
 
         public void Parse(string json)
         {
@@ -60,6 +63,13 @@ namespace TDAmeritrade
                     {
                         ParseTimeSaleEquity(tmstamp, content);
                     }
+                }
+            }
+            else if (job.ContainsKey("service"))
+            {
+                if(job["service"].Value<string>() == "OPTION_LEVEL")
+                {
+                    OnOptionLevel(JsonConvert.DeserializeObject<TDOptionLevelSignal>(json));
                 }
             }
         }

@@ -203,7 +203,7 @@ namespace TDAmeritrade
             {
                 var exp = new TDOptionMap();
                 map.Add(exp);
-                exp.expires = DateTime.Parse(expiry.Name.Split(":")[0]);
+                exp.expires = DateTime.Parse(expiry.Name.Split(':')[0]);
                 exp.options = new List<TDOption>();
 
                 var set = expiry.Value.ToObject<JObject>();
@@ -212,7 +212,6 @@ namespace TDAmeritrade
                     var stike = double.Parse(contract.Name);
                     var tuples = contract.Value.First.ToObject<JObject>();
                     var option = new TDOption();
-                    option.strike = stike;
                     exp.options.Add(option);
 
                     option.putCall = tuples["putCall"].Value<string>();
@@ -279,7 +278,6 @@ namespace TDAmeritrade
         public string symbol { get; set; }
         public string description { get; set; }
         public string exchangeName { get; set; }
-        public double strike { get; set; }
         public double bidPrice { get; set; }
         public double askPrice { get; set; }
         public double lastPrice { get; set; }

@@ -129,12 +129,14 @@ namespace TDConsole
                     //jsonParser.OnHeartbeatSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnQuoteSignal += (o) => writer.Write(processor.Serialize(o));
                     jsonParser.OnTimeSaleSignal += (o) => writer.Write(processor.Serialize(o));
+                    jsonParser.OnOptionLevel += (o) => writer.Write(processor.Serialize(o));
 
                     jsonParser.OnBookSignal += (o) => writes++;
                     jsonParser.OnChartSignal += (o) => writes++;
                     //jsonParser.OnHeartbeatSignal += (o) => writes++;
                     jsonParser.OnQuoteSignal += (o) => writes++;
                     jsonParser.OnTimeSaleSignal += (o) => writes++;
+                    jsonParser.OnOptionLevel += (o) => writes++;
 
                     using (var file = new StreamReader(txt_path))
                     {
@@ -152,6 +154,7 @@ namespace TDConsole
                 //processor.OnHeartbeatSignal += (o) => reads++;
                 processor.OnQuoteSignal += (o) => reads++;
                 processor.OnTimeSaleSignal += (o) => reads++;
+                processor.OnOptionLevel += (o) => reads++;
                 processor.ReadFile(bin_path);
                 Console.WriteLine($"reads {reads} writes {writes}");
             }
@@ -212,6 +215,7 @@ namespace TDConsole
                         if (socket.IsConnected)
                         {
                             await socket.RequestQOS((TDQOSLevels)qosInt);
+                            await Task.Delay(1000);
                             await socket.SubscribeQuote(symbols);
                             await socket.SubscribeChart(symbols, IsFutureSymbol(symbols) ? TDChartSubs.CHART_FUTURES : TDChartSubs.CHART_EQUITY);
                             await socket.SubscribeTimeSale(symbols, IsFutureSymbol(symbols) ? TDTimeSaleServices.TIMESALE_FUTURES : TDTimeSaleServices.TIMESALE_EQUITY);
@@ -265,6 +269,16 @@ namespace TDConsole
                 socket.OnTimeSaleSignal += o => writeBin(processor.Serialize(o));
                 socket.OnQuoteSignal += o => writeBin(processor.Serialize(o));
                 socket.OnHeartbeatSignal += o => writeBin(processor.Serialize(o));
+                socket.OnOptionLevel += o => writeBin(processor.Serialize(o));
+
+                await socket.RequestOptionLevel(new TDOptionChainRequest
+                {
+                    interval = .5f,
+                    fromDate = DateTime.Now,
+                    toDate = DateTime.Now.AddDays(15),
+                    strikeCount = 10,
+                    symbol = symbols,
+                });
 
                 socket.OnConnect += (s) =>
                 {
