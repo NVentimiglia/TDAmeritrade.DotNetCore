@@ -14,13 +14,13 @@
 
   <ItemGroup>
     <None Remove="Models\TDAuthModels.cs.meta" />
+    <None Remove="Models\TDMiscModels.cs.meta" />
     <None Remove="Models\TDOptionChainModels.cs.meta" />
     <None Remove="Models\TDPriceHistoryModels.cs.meta" />
     <None Remove="Models\TDPrincipalModels.cs.meta" />
     <None Remove="Models\TDQuoteModels.cs.meta" />
     <None Remove="Models\TDStreamModels.cs.meta" />
     <None Remove="Models\TDUserInfoModels.cs.meta" />
-    <None Remove="Serialization\BinarySerializer.cs~RF2332ae.TMP" />
     <None Remove="Utilities\BitSerializer.cs.meta" />
     <None Remove="Utilities\IBitModel.cs.meta" />
     <None Remove="Utilities\ITDPersistentCache.cs.meta" />

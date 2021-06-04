@@ -49,7 +49,6 @@ namespace TDAmeritrade
         public event Action<Exception> OnException = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<bool> OnConnect = delegate { };
-
         /// <summary> Server Sent Events as raw json </summary>
         public event Action<string> OnJsonSignal = delegate { };
         /// <summary> Server Sent Events </summary>
@@ -62,8 +61,6 @@ namespace TDAmeritrade
         public event Action<TDTimeSaleSignal> OnTimeSaleSignal = delegate { };
         /// <summary> Server Sent Events </summary>
         public event Action<TDBookSignal> OnBookSignal = delegate { };
-        /// <summary> Server Sent Events </summary>
-        public event Action<TDOptionLevelSignal> OnOptionLevel = delegate { };
 
         public TDAmeritradeStreamClient(TDAmeritradeClient client)
         {
@@ -74,7 +71,6 @@ namespace TDAmeritrade
             _parser.OnQuoteSignal += o => { OnQuoteSignal(o); };
             _parser.OnTimeSaleSignal += o => { OnTimeSaleSignal(o); };
             _parser.OnBookSignal += o => { OnBookSignal(o); };
-            _parser.OnOptionLevel += o => { OnOptionLevel(o); };
         }
 
         /// <summary>
@@ -297,61 +293,6 @@ namespace TDAmeritrade
 
             var data = JsonConvert.SerializeObject(request, _settings);
             return SendToServer(data);
-        }
-
-        public async Task RequestOptionLevel(TDOptionChainRequest request)
-        {
-            var result = await _client.GetOptionsChain(request);
-
-            var model = new TDOptionLevelSignal
-            {
-                symbol = request.symbol,
-                timestamp = DateTime.UtcNow.ToUnixTimeMilliseconds(),
-                levels = new System.Collections.Generic.List<TDOptionLevel>(),
-            };
-
-            Func<double, TDOptionLevel> Find = (p) =>
-            {
-                var l = model.levels.Find(o => o.strike == p);
-                if( l.strike == 0)
-                {
-                    l.strike = p;
-                    model.levels.Add(l);
-                }
-                return l;
-            };
-
-            Action<TDOptionLevel> Add = (p) =>
-            {
-                model.levels.RemoveAll(o => o.strike == p.strike);
-                model.levels.Add(p);
-            };
-
-            foreach (var exp in result.callExpDateMap)
-            {
-                foreach (var item in exp.options)
-                {
-                    var level = Find(item.strikePrice);
-                    level.callInterest += item.openInterest;
-                    level.callVolume += item.totalVolume;
-                    Add(level);
-                }
-            }
-
-            foreach (var exp in result.putExpDateMap)
-            {
-                foreach (var item in exp.options)
-                {
-                    var level = Find(item.strikePrice);
-                    level.putInterest += item.openInterest;
-                    level.putVolume += item.totalVolume;
-                    Add(level);
-                }
-            }
-
-            model.service = "OPTION_LEVEL";
-            OnJsonSignal(JsonConvert.SerializeObject(model));
-            OnOptionLevel(model);
         }
 
         //

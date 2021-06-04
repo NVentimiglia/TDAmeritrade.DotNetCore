@@ -22,101 +22,15 @@ namespace TDAmeritrade
         public DateTime TimeStamp { get; }
 
     }
-    public enum TDSignalTypes
-    {
-        NA,
-        HEARTBEAT,
-        CHART,
-        QUOTE,
-        TIMESALE,
-        BOOK,
-        OPTIONLEVELS,
-    }
 
     [Serializable]
-    public struct TDOptionLevelSignal : IBitModel, ISignal
-    {
-        /// <summary>
-        /// UNIX
-        /// </summary>  
-        public double timestamp { get; set; }
-        /// <summary>
-        /// 0 Ticker symbol in upper case. 
-        /// </summary>
-        public string symbol { get; set; }
-
-        public string service { get; set; }
-
-        public List<TDOptionLevel> levels;
-
-        public DateTime TimeStamp
-        {
-            get
-            {
-                return TDHelpers.FromUnixTimeMilliseconds(timestamp);
-            }
-        }
-
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-            symbol = stream.Parse(symbol);
-            levels = stream.Parse(levels);
-        }
-    }
-
-    [Serializable]
-    public struct TDOptionLevel : IBitModel, IEquatable<TDOptionLevel>
-    {
-        public int putInterest;
-        public int callInterest;
-        public int putVolume;
-        public int callVolume;
-        public double strike;
-
-        public int TotalOpenInterest
-        {
-            get
-            {
-                return callInterest + putInterest;
-            }
-        }
-        public int TotalVolume
-        {
-            get
-            {
-                return putVolume + callVolume;
-            }
-        }
-
-
-        public bool Equals(TDOptionLevel other)
-        {
-            return strike == other.strike;
-        }
-
-        public void Parse(BitSerializer stream)
-        {
-            stream.Parse(ref putInterest);
-            stream.Parse(ref callInterest);
-            stream.Parse(ref putVolume);
-            stream.Parse(ref callVolume);
-            stream.Parse(ref strike);
-        }
-    }
-
-    [Serializable]
-    public struct TDHeartbeatSignal : IBitModel
+    public struct TDHeartbeatSignal
     {
         /// <summary>
         /// UNIX
         /// </summary> 
         public double timestamp { get; set; }
 
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-        }
         public DateTime TimeStamp
         {
             get
@@ -139,7 +53,7 @@ namespace TDAmeritrade
 
 
     [Serializable]
-    public struct TDBookSignal : ISignal, IBitModel
+    public struct TDBookSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -162,15 +76,6 @@ namespace TDAmeritrade
         /// </summary>
         public TDBookLevel[] asks;
 
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-            symbol = stream.Parse(symbol);
-            id = (TDBookOptions)stream.Parse((byte)id);
-            stream.Parse(ref bids);
-            stream.Parse(ref asks);
-        }
-
         public DateTime TimeStamp
         {
             get
@@ -181,7 +86,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDBookLevel : IBitModel
+    public struct TDBookLevel
     {
         /// <summary>
         /// 0 this price level
@@ -193,16 +98,10 @@ namespace TDAmeritrade
         /// </summary>
         [JsonProperty("1")]
         public double quantity;
-
-        public void Parse(BitSerializer stream)
-        {
-            stream.Parse(ref price);
-            stream.Parse(ref quantity);
-        }
     }
 
     [Serializable]
-    public struct TDQuoteSignal : ISignal, IBitModel
+    public struct TDQuoteSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -285,33 +184,6 @@ namespace TDAmeritrade
         /// 24 Option Risk/Volatility Measurement
         /// </summary>
         public double volatility;
-
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-            symbol = stream.Parse(symbol);
-            stream.Parse(ref bidprice);
-            stream.Parse(ref askprice);
-            stream.Parse(ref bidsize);
-            stream.Parse(ref asksize);
-
-            stream.Parse(ref lastprice);
-            stream.Parse(ref lastsize);
-
-            stream.Parse(ref totalvolume);
-            stream.Parse(ref openprice);
-            stream.Parse(ref closeprice);
-            stream.Parse(ref lowprice);
-            stream.Parse(ref highprice);
-
-
-            stream.Parse(ref tradetime);
-            stream.Parse(ref quotetime);
-            stream.Parse(ref bidid);
-            stream.Parse(ref askid);
-            stream.Parse(ref bidtick);
-            stream.Parse(ref volatility);
-        }
         public DateTime TimeStamp
         {
             get
@@ -336,7 +208,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDTimeSaleSignal : ISignal, IBitModel
+    public struct TDTimeSaleSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -368,17 +240,6 @@ namespace TDAmeritrade
         /// 4 Number of Number of shares for bid
         /// </summary>
         public long lastsequence;
-
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-            symbol = stream.Parse(symbol);
-            stream.Parse(ref sequence);
-            stream.Parse(ref tradetime);
-            stream.Parse(ref lastprice);
-            stream.Parse(ref lastsize);
-            stream.Parse(ref lastsequence);
-        }
         public DateTime TimeStamp
         {
             get
@@ -396,7 +257,7 @@ namespace TDAmeritrade
     }
 
     [Serializable]
-    public struct TDChartSignal : ISignal, IBitModel
+    public struct TDChartSignal : ISignal
     {
         /// <summary>
         /// UNIX
@@ -440,20 +301,6 @@ namespace TDAmeritrade
         /// 8 Not useful
         /// </summary>
         public int chartday;
-
-        public void Parse(BitSerializer stream)
-        {
-            timestamp = stream.Parse(timestamp);
-            symbol = stream.Parse(symbol);
-            stream.Parse(ref openprice);
-            stream.Parse(ref highprice);
-            stream.Parse(ref lowprice);
-            stream.Parse(ref closeprice);
-            stream.Parse(ref volume);
-            stream.Parse(ref sequence);
-            stream.Parse(ref charttime);
-            stream.Parse(ref chartday);
-        }
         public DateTime TimeStamp
         {
             get
