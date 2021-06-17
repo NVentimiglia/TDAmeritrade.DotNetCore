@@ -245,7 +245,8 @@ namespace TDAmeritrade
                     option.theoreticalOptionValue = tuples["theoreticalOptionValue"].Value<double>();
                     option.theoreticalVolatility = tuples["theoreticalVolatility"].Value<double>();
                     option.strikePrice = tuples["strikePrice"].Value<double>();
-                    option.expirationDate = tuples["expirationDate"].Value<string>();
+                    option.expirationDate = tuples["expirationDate"].Value<double>();
+                    option.daysToExpiration = tuples["daysToExpiration"].Value<int>();
                     option.multiplier = tuples["multiplier"].Value<double>();
                     option.settlementType = tuples["settlementType"].Value<string>();
                     option.deliverableNote = tuples["deliverableNote"].Value<string>();
@@ -292,7 +293,6 @@ namespace TDAmeritrade
         public int totalVolume { get; set; }
         public long quoteTimeInLong { get; set; }
         public long tradeTimeInLong { get; set; }
-
         public double netChange { get; set; }
         public double volatility { get; set; }
         public double delta { get; set; }
@@ -306,7 +306,8 @@ namespace TDAmeritrade
         public double theoreticalOptionValue { get; set; }
         public double theoreticalVolatility { get; set; }
         public double strikePrice { get; set; }
-        public string expirationDate { get; set; }
+        public double expirationDate { get; set; }
+        public int daysToExpiration { get; set; }
         public string expirationType { get; set; }
         public double multiplier { get; set; }
         public string settlementType { get; set; }
@@ -314,6 +315,20 @@ namespace TDAmeritrade
         public double percentChange { get; set; }
         public double markChange { get; set; }
         public double markPercentChange { get; set; }
+        public DateTime ExpirationDate
+        {
+            get
+            {
+                return TDHelpers.FromUnixTimeMilliseconds(expirationDate);
+            }
+        }
+        public DateTime ExpirationDay
+        {
+            get
+            {
+                return TDHelpers.ToRegularTradingEnd(DateTime.Now.AddDays(daysToExpiration));
+            }
+        }
     }
 
     [Serializable]

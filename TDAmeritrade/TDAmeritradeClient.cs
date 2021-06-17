@@ -309,20 +309,25 @@ namespace TDAmeritrade
             {
                 query["apikey"] = key;
             }
-            //query["symbol"] = model.symbol;
-            query["frequencyType"] = model.frequencyType.ToString();
-            query["frequency"] = model.frequency.ToString();
+            if (model.frequencyType.HasValue)
+            {
+                query["frequencyType"] = model.frequencyType.ToString();
+                query["frequency"] = model.frequency.ToString();
+            }
             if (model.endDate.HasValue)
             {
                 query["endDate"] = model.endDate.Value.ToString();
                 query["startDate"] = model.startDate.Value.ToString();
             }
-            else
+            if(model.periodType.HasValue)
             {
                 query["periodType"] = model.periodType.ToString();
                 query["period"] = model.period.ToString();
             }
-            query["needExtendedHoursData"] = model.needExtendedHoursData.ToString();
+            if (model.needExtendedHoursData.HasValue)
+            {
+                query["needExtendedHoursData"] = model.needExtendedHoursData.ToString();
+            }
             builder.Query = query.ToString();
             string url = builder.ToString();
 

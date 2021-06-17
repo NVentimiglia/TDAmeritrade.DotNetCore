@@ -91,6 +91,7 @@ namespace TDAmeritrade
                     throw new Exception("Busy");
                 }
 
+
                 _prince = await _client.GetPrincipals(TDPrincipalsFields.streamerConnectionInfo, TDPrincipalsFields.streamerSubscriptionKeys, TDPrincipalsFields.preferences);
                 _account = _prince.accounts.Find(o => o.accountId == _prince.primaryAccountId);
 
@@ -173,6 +174,36 @@ namespace TDAmeritrade
         }
 
         /// <summary>
+        /// Unsubscribed to the chart event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="isFutureSymbol">true if symbols are for futures</param>
+        /// <returns></returns>
+        public Task UnsubscribeChart(string symbols, TDChartSubs service)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                    {
+                    new TDRealtimeRequest
+                    {
+                        service = service.ToString(),
+                        command = "UNSUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
+                        }
+                    }
+                    }
+            };
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
         /// Subscribeds to the level one quote event service
         /// </summary>
         /// <param name="symbols"></param>
@@ -194,6 +225,36 @@ namespace TDAmeritrade
                         {
                             keys = symbols,
                             fields = "0,1,2,3,4,5,8,9,10,11,12,13,14,15,24,28"
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Unsubscribeds to the level one quote event service
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <returns></returns>
+        public Task UnsubscribeQuote(string symbols)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = "QUOTE",
+                        command = "UNSUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
                         }
                     }
                 }
@@ -236,6 +297,37 @@ namespace TDAmeritrade
         }
 
         /// <summary>
+        /// Unsubscribed to the time&sales event service
+        /// </summary>
+        /// <param name="symbols">spy,qqq,amd</param>
+        /// <param name="service">data service to subscribe to</param>
+        /// <returns></returns>
+        public Task UnsubscribeTimeSale(string symbols, TDTimeSaleServices service)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = service.ToString(),
+                        command = "UNSUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
         /// Subscribe to the level two order book. Note this stream has no official documentation, and it's not entirely clear what exchange it corresponds to.Use at your own risk.
         /// </summary>
         /// <returns></returns>
@@ -256,6 +348,35 @@ namespace TDAmeritrade
                         {
                             keys = symbols,
                             fields = "0,1,2,3"
+                        }
+                    }
+                }
+            };
+
+            var data = JsonConvert.SerializeObject(request, _settings);
+            return SendToServer(data);
+        }
+
+        /// <summary>
+        /// Unsubscribe to the level two order book. Note this stream has no official documentation, and it's not entirely clear what exchange it corresponds to.Use at your own risk.
+        /// </summary>
+        /// <returns></returns>
+        public Task UnsubscribeBook(string symbols, TDBookOptions option)
+        {
+            var request = new TDRealtimeRequestContainer
+            {
+                requests = new TDRealtimeRequest[]
+                {
+                    new TDRealtimeRequest
+                    {
+                        service = option.ToString(),
+                        command = "UNSUBS",
+                        requestid = Interlocked.Increment(ref _counter),
+                        account = _account.accountId,
+                        source = _prince.streamerInfo.appId,
+                        parameters = new
+                        {
+                            keys = symbols,
                         }
                     }
                 }

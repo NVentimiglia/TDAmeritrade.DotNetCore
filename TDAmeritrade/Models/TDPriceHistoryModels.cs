@@ -54,7 +54,7 @@ namespace TDAmeritrade
         /// <summary>
         /// The type of period to show. Valid values are day, month, year, or ytd (year to date). Default is day.
         /// </summary>
-        public PeriodTypes periodType { get; set; }
+        public PeriodTypes? periodType { get; set; }
         /// <summary>
         /// The number of periods to show.
         /// Example: For a 2 day / 1 min chart, the values would be:
@@ -78,7 +78,7 @@ namespace TDAmeritrade
         /// year: daily, weekly, monthly*
         /// ytd: daily, weekly*
         /// </summary>
-        public FrequencyType frequencyType { get; set; }
+        public FrequencyType? frequencyType { get; set; }
         /// <summary>
         /// The number of the frequencyType to be included in each candle.
         /// /// Valid frequencies by frequencyType (defaults marked with an asterisk):   
@@ -102,7 +102,7 @@ namespace TDAmeritrade
         /// <summary>
         /// true to return extended hours data, false for regular market hours only. Default is true
         /// </summary>
-        public bool needExtendedHoursData { get; set; }
+        public bool? needExtendedHoursData { get; set; }
 
 
         [JsonIgnore]
