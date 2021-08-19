@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.Web", "TDAmeri
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TDAmeritrade.DataProtection", "TDAmeritrade.DataProtection\TDAmeritrade.DataProtection.csproj", "{0B3196C6-DD40-42AF-AED8-BA22B6B65368}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriceHistoryBank", "PriceHistoryBank\PriceHistoryBank.csproj", "{86208658-5754-4066-9908-38E16A6CAE06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B3196C6-DD40-42AF-AED8-BA22B6B65368}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86208658-5754-4066-9908-38E16A6CAE06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86208658-5754-4066-9908-38E16A6CAE06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86208658-5754-4066-9908-38E16A6CAE06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86208658-5754-4066-9908-38E16A6CAE06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
