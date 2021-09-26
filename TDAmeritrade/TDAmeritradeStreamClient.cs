@@ -400,7 +400,7 @@ namespace TDAmeritrade
                     new TDRealtimeRequest
                     {
                         service = "ADMIN",
-                        command = "SUBS",
+                        command = "QOS",
                         requestid = Interlocked.Increment(ref _counter),
                         account = _account.accountId,
                         source = _prince.streamerInfo.appId,
