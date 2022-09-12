@@ -42,18 +42,40 @@
         </form>
     </div>
 </div>
+
 <div class="card">
     <div class="card-body">
         <form action="@Url.Action("Quote", "Home")" class="form-horizontal" method="POST" role="form" autocomplete="on">
-
             <h2>Quote</h2>
-
             <div class="form-group">
                 <label class="col-md-2 control-label">Symbol</label>
                 <input class="form-control" id="symbol" name="symbol" value="SPY" />
             </div>
             <input type="submit" class="btn btn-primary btn-block" value="Quote" />
+        </form>
+    </div>
+</div>
 
+
+<div class="card">
+    <div class="card-body">
+        <form action="@Url.Action("GetPrincipalsJson", "Home")" class="form-horizontal" method="POST" role="form" >
+            <h2>Principals</h2>
+            <input type="submit" class="btn btn-primary btn-block" value="Principals" />
+        </form>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-body">
+        <form action="@Url.Action("GetAccount", "Home")" class="form-horizontal" method="POST" role="form" autocomplete="on">
+            <h2>GetAccount</h2>
+            <div class="form-group">
+                <label class="col-md-2 control-label">accountId</label>
+                <input class="form-control" id="accountId" name="accountId" value="accountId" />
+            </div>
+            <input type="submit" class="btn btn-primary btn-block" value="account" />
         </form>
     </div>
 </div>
