@@ -462,6 +462,37 @@ namespace TDAmeritrade
                 }
             }
         }
+
+        /// <summary>
+        /// Get Account
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <returns></returns>
+        public async Task<string> GetAccount(string accountId, params TDPrincipalsFields[] fields)
+        {
+            if (!IsSignedIn)
+            {
+                throw (new Exception("Not authenticated"));
+            }
+
+            var arg = string.Join(",", fields.Select(o => o.ToString()));
+
+            var path = $"https://api.tdameritrade.com/v1/accounts/{accountId}?fields={arg}";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthResult.access_token);
+                var res = await client.GetAsync(path);
+
+                switch (res.StatusCode)
+                {
+                    case HttpStatusCode.OK:
+                        return await res.Content.ReadAsStringAsync();
+                    default:
+                        throw (new Exception($"{res.StatusCode} {res.ReasonPhrase}"));
+                }
+            }
+        }
         #endregion
 
         #region Misc

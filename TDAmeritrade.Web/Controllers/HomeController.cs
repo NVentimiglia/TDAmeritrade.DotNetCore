@@ -50,6 +50,26 @@ namespace TDAmeritrade.Web.Controllers
             return Content(data);
         }
 
+        public async Task<IActionResult> GetPrincipalsJson()
+        {
+            if (!_client.IsSignedIn)
+            {
+                await _client.SignIn();
+            }
+            var data = await _client.GetPrincipalsJson();
+            return Content(data);
+        }
+
+        public async Task<IActionResult> GetAccount(string accountId)
+        {
+            if (!_client.IsSignedIn)
+            {
+                await _client.SignIn();
+            }
+            var data = await _client.GetAccount(accountId);
+            return Content(data);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
